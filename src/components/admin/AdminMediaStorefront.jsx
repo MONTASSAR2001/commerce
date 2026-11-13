@@ -17,6 +17,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { uploadMediaAsset } from '../../lib/kronosDataService';
+import { sanitizeSafeExternalUrl } from '../../lib/urlSafety';
 
 /* ── 3. SUPABASE STORAGE MEDIA VAULT (IMAGES, VIDEOS, DOCUMENTS) ───────────── */
 export function MediaVaultTab({
@@ -283,9 +284,9 @@ export function MediaVaultTab({
                 )}
 
                 <a
-                  href={asset.public_url}
+                  href={sanitizeSafeExternalUrl(asset.public_url, '#')}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="p-1.5 rounded-[10px] border border-[#171717] bg-white hover:bg-[#f7efe9]"
                   title="Open raw file"
                 >

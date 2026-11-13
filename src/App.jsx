@@ -1,4 +1,6 @@
 import React, { Suspense, lazy, useState, useEffect, useCallback } from 'react';
+import { sanitizeSafeExternalUrl } from './lib/urlSafety';
+export { sanitizeSafeExternalUrl };
 import { defaultKronosData } from './data/defaultRawlineData';
 import {
   loadLocalStoreData,
@@ -15,8 +17,8 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 const RAW_APP_MODE = (import.meta.env.VITE_APP_MODE || 'all').toLowerCase().trim();
 const APP_MODE = RAW_APP_MODE === 'store' || RAW_APP_MODE === 'admin' ? RAW_APP_MODE : 'all';
-const STOREFRONT_URL = (import.meta.env.VITE_STOREFRONT_URL || '').trim().replace(/\/+$/, '');
-const ADMIN_URL = (import.meta.env.VITE_ADMIN_URL || '').trim().replace(/\/+$/, '');
+const STOREFRONT_URL = sanitizeSafeExternalUrl(import.meta.env.VITE_STOREFRONT_URL);
+const ADMIN_URL = sanitizeSafeExternalUrl(import.meta.env.VITE_ADMIN_URL);
 
 function isAdminPath(pathname = '', hash = '') {
   const cleanPath = (pathname || '').replace(/\/+$/, '');

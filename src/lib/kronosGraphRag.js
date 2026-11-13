@@ -566,7 +566,9 @@ export function isStorefrontRestrictedQuery(query = '') {
     /\b(how many\s+(orders?|commandes?|sales|clients?|customers?|users?|subscribers?|admins?|products?\s+in\s+stock)|total\s+(orders?|commandes?|revenue|sales|customers?|subscribers?)|number of\s+(orders?|commandes?|customers?|clients?)|combien\s+de\s+(commandes?|clients?|ventes?|abonn[eé]s?)|nombre\s+de\s+(commandes?|clients?))\b/i,
     /\b(list\s+(all\s+)?(orders?|commandes?|customers?|clients?|subscribers?|emails?|phones?)|export\s+(orders?|customers?)|all\s+(orders?|commandes?|customers?|clients?))\b/i,
     /\b(admin\s+(password|email|panel|credentials|access|secret|key|dashboard)|service[_\s]?role|api\s*key|gsk_|env\.local|database\s+(schema|dump|url)|sql\s+table|rls\s+policy|unpublished|draft\s+products?)\b/i,
-    /\b(exact\s+stock|stock\s+(count|level|quantity|inventory)|warehouse\s+inventory)\b/i
+    /\b(exact\s+stock|stock\s+(count|level|quantity|inventory)|warehouse\s+inventory)\b/i,
+    /\b(ignore\s+(?:all\s+|previous\s+|the\s+)?instructions?|system\s*prompt|developer\s*prompt|reveal\s+(?:your\s+|the\s+)?(?:prompt|instructions?|secrets?|keys?|dossier)|admin\s+full\s+project\s+dossier|bypass\s+(?:privacy|security|shield)|act\s+as\s+admin)\b/i,
+    /(?:إجمالي\s*(?:الإيرادات|المبيعات|الأرباح|الطلبات|العملاء|الزبائن|المشتركين)|كم\s*(?:عدد\s*)?(?:الطلبات|المبيعات|العملاء|الزبائن|الأرباح|المداخيل)|كشف\s*(?:الطلبات|العملاء|كلمات\s*المرور|المفاتيح)|مفتاح\s*(?:الواجهة|الأدمن|سري|api)|تجاهل\s*(?:التعليمات|الأوامر)|كلمة\s*(?:السر|المرور)|قاعدة\s*البيانات|لوحة\s*(?:التحكم|الإدارة)|سجل\s*(?:الطلبات|العملاء))/iu
   ];
 
   return patterns.some((re) => re.test(q));
@@ -1229,12 +1231,15 @@ function isCasualGreetingQuery(query = '') {
   );
 }
 
-function sanitizeStorefrontAnswer(answer = '') {
+export function sanitizeStorefrontAnswer(answer = '') {
   if (!answer) return '';
   return String(answer)
     .replace(/^###\s*✨\s*(?:CURATED\s+SELECTION|SÉLECTION\s+SIGNÉE|تشكيلة\s+مختارة|K\s+AI\s+STYLIST[^\n]*|WELCOME\s+TO\s+K[^\n]*)\s*\n?/gim, '')
     .replace(/^>\s*💡\s*(?:Strategy|Stratégie|استراتيجية(?:\s+ذكية)?)\s*:\s*/gim, '')
     .replace(/\b(?:Knowledge Graph|Graph RAG|Supabase|Groq(?:\s*LPU)?)\b/gi, 'our boutique catalog')
+    .replace(/\b(?:gsk|sbp|sb_secret)_[A-Za-z0-9_-]{8,}\b/g, '[redacted-key]')
+    .replace(/\beyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{10,}\b/g, '[redacted-token]')
+    .replace(/ADMIN\s+FULL\s+PROJECT\s+DOSSIER/gi, 'Boutique Catalog Overview')
     .trim();
 }
 

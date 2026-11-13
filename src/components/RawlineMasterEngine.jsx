@@ -63,6 +63,7 @@ import {
   localizeColor,
   translateEditorialCopy
 } from '../lib/i18nEngine';
+import { sanitizeSafeExternalUrl } from '../lib/urlSafety';
 import {
   submitCustomerOrder,
   validatePromoCode,
@@ -6686,9 +6687,9 @@ export default function RawlineMasterEngine({
             ]).map((soc, idx) => (
               <a
                 key={soc.name || idx}
-                href={soc.url || '#'}
+                href={sanitizeSafeExternalUrl(soc.url, '#')}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="text-[#FFFFE3] hover:text-[#EA301F] underline decoration-1 underline-offset-4 transition-colors"
               >
                 {soc.name}
@@ -6732,9 +6733,9 @@ export default function RawlineMasterEngine({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <a
-                  href={photoHref}
+                  href={sanitizeSafeExternalUrl(photoHref, '#')}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-azeret text-sm uppercase tracking-wider text-white"
                 >
                   {t('sections.viewOn')} {rev.platform || 'Instagram'} ↗
@@ -6961,9 +6962,9 @@ export default function RawlineMasterEngine({
                 ]).map((soc, idx) => (
                   <a
                     key={soc.name || idx}
-                    href={soc.url || '#'}
+                    href={sanitizeSafeExternalUrl(soc.url, '#')}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="hover:text-white transition-colors"
                   >
                     {soc.name}
