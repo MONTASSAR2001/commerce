@@ -60,3 +60,4 @@ Run the SQL scripts located in [`../supabase/`](../supabase/) inside the Supabas
 - `get_kronos_catalog_stats()`: Returns live authoritative counts (`total_products`, `men_count`, `women_count`, `on_sale_count`, `min_price_tnd`, `max_price_tnd`, `men_categories`, `women_categories`).
 - `log_rag_interaction(...)` & `submit_rag_feedback(...)`: Persists Q&A telemetry and thumbs-up/down ratings cleanly under RLS.
 - `validate_promo_code(...)` & `submit_kronos_order(...)`: Atomic checkout validation and order recording.
+

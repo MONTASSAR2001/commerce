@@ -112,3 +112,4 @@ flowchart LR
 - **Localization ([`src/lib/i18nEngine.js`](../src/lib/i18nEngine.js))**: Reactive `EN` / `FR` / `AR` translation engine covering navigation, catalog badges, checkout, drawers, and Chatbot quick actions, automatically toggling `dir="rtl"` for Arabic.
 - **3D Fitting Lab ([`src/components/Rawline3DFittingLab.jsx`](../src/components/Rawline3DFittingLab.jsx))**: Real-time Three.js WebGL renderer loading rigged `man.glb` (184 cm), `woman.glb` (175 cm), and `animations.glb`, supporting multi-angle presets (`FRONT`, `3/4`, `SIDE`, `BACK`), skin tone shaders, studio lighting presets, and live garment fitting swaps.
 - **Interactive Knowledge Graph ([`src/components/admin/EnterpriseGraphCanvas.jsx`](../src/components/admin/EnterpriseGraphCanvas.jsx))**: Computes PageRank (`d = 0.85`), Betweenness Centrality, Union-Find clusters, and renders both **2D Concentric Ring** and **3D WebGL** interactive inspection views inside `/admin`.
+
