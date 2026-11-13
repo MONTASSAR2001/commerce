@@ -380,6 +380,49 @@ function ZaraProductCard({
   );
 }
 
+/** Isolate WebGL/3D Fitting Lab errors so the storefront never blanks to an empty screen. */
+class FittingLabErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidCatch(error) {
+    console.error('[FittingLabErrorBoundary]', error);
+  }
+  componentDidUpdate(prevProps) {
+    if (!prevProps.isOpen && this.props.isOpen && this.state.error) {
+      this.setState({ error: null });
+    }
+  }
+  render() {
+    if (this.state.error && this.props.isOpen) {
+      return (
+        <div className="fixed inset-0 z-[100] bg-[#0B0B10]/95 backdrop-blur-md flex items-center justify-center p-6 text-white font-sans">
+          <div className="max-w-md w-full rounded-3xl border border-white/15 bg-[#12121A] p-6 text-center space-y-4 shadow-2xl">
+            <h3 className="font-azeret font-bold text-base uppercase">3D Fitting Lab Unavailable</h3>
+            <p className="text-xs text-[#A1A1AA] leading-relaxed">
+              Your browser could not initialize the 3D viewport right now. Try enabling hardware acceleration or relaxing strict privacy/WebGL blocking, or continue shopping below.
+            </p>
+            <button
+              onClick={() => {
+                this.setState({ error: null });
+                if (this.props.onClose) this.props.onClose();
+              }}
+              className="w-full py-3 rounded-xl bg-[#EA301F] hover:bg-[#FF3B28] text-white font-bold text-xs uppercase cursor-pointer"
+            >
+              Return to Product Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function RawlineMasterEngine({
   data = {},
   onUpdateField,
@@ -7529,21 +7572,29 @@ export default function RawlineMasterEngine({
       )}
 
       {/* ── 3D Real Human Fitting Lab & Virtual Try-On Studio ── */}
-      <Rawline3DFittingLab
+      <FittingLabErrorBoundary
         isOpen={showFittingLab || externalFittingLabOpen}
         onClose={() => {
           setShowFittingLab(false);
           if (onCloseFittingLab) onCloseFittingLab();
         }}
-        product={fittingLabProduct}
-        allProducts={products}
-        onAddToCart={(prod, sz, qty, col) => addToCart(prod, sz, col, qty)}
-        initialSize="L"
-        onAddProduct={onAddProduct}
-        onUpdateProduct={onUpdateProduct}
-        onDeleteProduct={onDeleteProduct}
-        uploadImage={uploadImage}
-      />
+      >
+        <Rawline3DFittingLab
+          isOpen={showFittingLab || externalFittingLabOpen}
+          onClose={() => {
+            setShowFittingLab(false);
+            if (onCloseFittingLab) onCloseFittingLab();
+          }}
+          product={fittingLabProduct}
+          allProducts={products}
+          onAddToCart={(prod, sz, qty, col) => addToCart(prod, sz, col, qty)}
+          initialSize="L"
+          onAddProduct={onAddProduct}
+          onUpdateProduct={onUpdateProduct}
+          onDeleteProduct={onDeleteProduct}
+          uploadImage={uploadImage}
+        />
+      </FittingLabErrorBoundary>
 
       {/* ── Persistent Floating AI Stylist Widget (Groq + Graph RAG) ── */}
       <RawlineAIChatbot

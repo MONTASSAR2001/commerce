@@ -120,15 +120,40 @@ function getColorHexNumber(colorNameOrHex) {
   return 0x253241;
 }
 
+function normalizeColorLabel(colorItem) {
+  if (!colorItem) return 'Standard';
+  if (typeof colorItem === 'object') return String(colorItem.name || colorItem.label || colorItem.hex || 'Standard');
+  return String(colorItem);
+}
+
+/** Create a Three.js WebGLRenderer with safe fallback options so strict browsers never crash React. */
+function createWebGLRendererSafe() {
+  const attempts = [
+    { antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' },
+    { antialias: false, alpha: false, preserveDrawingBuffer: true, powerPreference: 'default', failIfMajorPerformanceCaveat: false }
+  ];
+  let lastErr = null;
+  for (const opts of attempts) {
+    try {
+      const r = new THREE.WebGLRenderer(opts);
+      if (r && r.getContext && r.getContext()) return r;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error('WebGL context unavailable');
+}
+
 function getHexStr(colorNameOrHex, productObj = null) {
+  const label = normalizeColorLabel(colorNameOrHex);
   if (productObj && Array.isArray(productObj.colorVariants)) {
     const match = productObj.colorVariants.find(
-      (cv) => cv.name?.toLowerCase() === String(colorNameOrHex || '').toLowerCase()
+      (cv) => cv.name?.toLowerCase() === label.toLowerCase()
     );
     if (match?.hex) return match.hex;
   }
-  if (typeof colorNameOrHex === 'string' && colorNameOrHex.startsWith('#')) return colorNameOrHex;
-  const num = getColorHexNumber(colorNameOrHex);
+  if (label.startsWith('#')) return label;
+  const num = getColorHexNumber(label);
   return '#' + num.toString(16).padStart(6, '0');
 }
 
@@ -429,6 +454,7 @@ export default function Rawline3DFittingLab({
   const [autoRotate, setAutoRotate] = useState(false);
   const [modelLoading, setModelLoading] = useState(true);
   const [modelError, setModelError] = useState('');
+  const [webglUnavailable, setWebglUnavailable] = useState(false);
   const [activeAngleLabel, setActiveAngleLabel] = useState('3/4');
 
   // Outfit Slots worn simultaneously on the 3D human
@@ -476,7 +502,7 @@ export default function Rawline3DFittingLab({
 
     if (focusProd) {
       const slot = classifySlot(focusProd.category);
-      next[slot] = { product: focusProd, color: focusProd.colors?.[0] || 'Standard' };
+      next[slot] = { product: focusProd, color: focusProd.selectedColor || normalizeColorLabel(focusProd.colors?.[0]) };
       // If trying Jeans/Trousers, pair with clean studio Tank Top (Woman) or Crewneck Tee (Man)
       if (slot === 'bottom' && next.top) {
         const cleanTop =
@@ -579,7 +605,10 @@ export default function Rawline3DFittingLab({
         (wardrobeTab === 'BOTTOM' && slot === 'bottom') ||
         (wardrobeTab === 'SHOES' && slot === 'shoes') ||
         (wardrobeTab === 'BAG' && slot === 'bag');
-      const matchesSearch = !wardrobeSearch || p.name.toLowerCase().includes(wardrobeSearch.toLowerCase()) || p.category?.toLowerCase().includes(wardrobeSearch.toLowerCase());
+      const matchesSearch =
+        !wardrobeSearch ||
+        String(p?.name || '').toLowerCase().includes(wardrobeSearch.toLowerCase()) ||
+        String(p?.category || '').toLowerCase().includes(wardrobeSearch.toLowerCase());
       return matchesTab && matchesSearch;
     });
   }, [genderProducts, wardrobeTab, wardrobeSearch]);
@@ -611,145 +640,166 @@ export default function Rawline3DFittingLab({
     const container = containerRef.current;
     if (!container) return;
 
-    const width = container.clientWidth || 800;
-    const height = container.clientHeight || 650;
+    let frameId = null;
+    let ro = null;
+    let renderer = null;
+    let controls = null;
+    let pmrem = null;
+    let handleContextLost = null;
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: false,
-      preserveDrawingBuffer: true,
-      powerPreference: 'high-performance'
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(width, height);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.domElement.style.display = 'block';
-    renderer.domElement.style.width = '100%';
-    renderer.domElement.style.height = '100%';
+    try {
+      const width = container.clientWidth || 800;
+      const height = container.clientHeight || 650;
 
-    container.innerHTML = '';
-    container.appendChild(renderer.domElement);
+      renderer = createWebGLRendererSafe();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(width, height);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.domElement.style.display = 'block';
+      renderer.domElement.style.width = '100%';
+      renderer.domElement.style.height = '100%';
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf4f4f1);
+      handleContextLost = (ev) => {
+        ev.preventDefault();
+        setWebglUnavailable(true);
+        setModelLoading(false);
+        setModelError('WebGL context paused by browser. Showing 2D Editorial Studio.');
+      };
+      renderer.domElement.addEventListener('webglcontextlost', handleContextLost, false);
 
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    scene.environmentIntensity = 0.85;
+      container.innerHTML = '';
+      container.appendChild(renderer.domElement);
 
-    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 50);
-    camera.position.set(0.86, 1.10, 3.04);
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf4f4f1);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 0.92, 0);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.06;
-    controls.enablePan = false;
-    controls.minDistance = 1.15;
-    controls.maxDistance = 4.6;
-    controls.minPolarAngle = 0.25;
-    controls.maxPolarAngle = Math.PI * 0.515;
-    controls.update();
+      pmrem = new THREE.PMREMGenerator(renderer);
+      scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+      scene.environmentIntensity = 0.85;
 
-    // Studio 3-Point Lighting
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xcac8c0, 0.75);
-    scene.add(hemiLight);
+      const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 50);
+      camera.position.set(0.86, 1.10, 3.04);
 
-    const keyLight = new THREE.DirectionalLight(0xfffaf2, 2.3);
-    keyLight.position.set(2.4, 3.8, 3.2);
-    keyLight.castShadow = true;
-    keyLight.shadow.mapSize.width = 2048;
-    keyLight.shadow.mapSize.height = 2048;
-    keyLight.shadow.camera.near = 0.5;
-    keyLight.shadow.camera.far = 12;
-    const d = 1.6;
-    keyLight.shadow.camera.left = -d;
-    keyLight.shadow.camera.right = d;
-    keyLight.shadow.camera.top = d * 1.4;
-    keyLight.shadow.camera.bottom = -d;
-    keyLight.shadow.bias = -0.0005;
-    scene.add(keyLight);
-
-    const fillLight = new THREE.DirectionalLight(0xeef4ff, 1.1);
-    fillLight.position.set(-2.6, 2.1, 1.8);
-    scene.add(fillLight);
-
-    const rimLight = new THREE.DirectionalLight(0xffffff, 1.05);
-    rimLight.position.set(0.4, 2.8, -3.2);
-    scene.add(rimLight);
-
-    // Architectural Studio Runway Podium & Soft Shadow Floor
-    const shadowFloor = new THREE.Mesh(
-      new THREE.CircleGeometry(3.2, 64),
-      new THREE.ShadowMaterial({ opacity: 0.22 })
-    );
-    shadowFloor.rotation.x = -Math.PI / 2;
-    shadowFloor.position.y = 0.002;
-    shadowFloor.receiveShadow = true;
-    scene.add(shadowFloor);
-
-    const podiumGroup = new THREE.Group();
-    const podiumMat = new THREE.MeshStandardMaterial({
-      color: 0xe6e6e2,
-      roughness: 0.45,
-      metalness: 0.08
-    });
-    const podiumMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.76, 0.04, 64), podiumMat);
-    podiumMesh.position.y = -0.02;
-    podiumMesh.receiveShadow = true;
-    podiumGroup.add(podiumMesh);
-
-    const rimMat = new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.22 });
-    const podiumRim = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.735, 64), rimMat);
-    podiumRim.rotation.x = -Math.PI / 2;
-    podiumRim.position.y = 0.001;
-    podiumGroup.add(podiumRim);
-    scene.add(podiumGroup);
-
-    threeRef.current = {
-      ...threeRef.current,
-      renderer,
-      scene,
-      camera,
-      controls,
-      pmrem,
-      podiumGroup,
-      podiumMesh,
-      podiumRim,
-      keyLight,
-      fillLight,
-      loadedModels: {}
-    };
-
-    let frameId;
-    const animate = () => {
-      frameId = requestAnimationFrame(animate);
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 0.92, 0);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.enablePan = false;
+      controls.minDistance = 1.15;
+      controls.maxDistance = 4.6;
+      controls.minPolarAngle = 0.25;
+      controls.maxPolarAngle = Math.PI * 0.515;
       controls.update();
-      renderer.render(scene, camera);
-    };
-    animate();
 
-    const handleResize = () => {
-      if (!containerRef.current || !threeRef.current.renderer) return;
-      const w = containerRef.current.clientWidth || 800;
-      const h = containerRef.current.clientHeight || 650;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    const ro = new ResizeObserver(handleResize);
-    ro.observe(container);
+      // Studio 3-Point Lighting
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0xcac8c0, 0.75);
+      scene.add(hemiLight);
+
+      const keyLight = new THREE.DirectionalLight(0xfffaf2, 2.3);
+      keyLight.position.set(2.4, 3.8, 3.2);
+      keyLight.castShadow = true;
+      keyLight.shadow.mapSize.width = 2048;
+      keyLight.shadow.mapSize.height = 2048;
+      keyLight.shadow.camera.near = 0.5;
+      keyLight.shadow.camera.far = 12;
+      const d = 1.6;
+      keyLight.shadow.camera.left = -d;
+      keyLight.shadow.camera.right = d;
+      keyLight.shadow.camera.top = d * 1.4;
+      keyLight.shadow.camera.bottom = -d;
+      keyLight.shadow.bias = -0.0005;
+      scene.add(keyLight);
+
+      const fillLight = new THREE.DirectionalLight(0xeef4ff, 1.1);
+      fillLight.position.set(-2.6, 2.1, 1.8);
+      scene.add(fillLight);
+
+      const rimLight = new THREE.DirectionalLight(0xffffff, 1.05);
+      rimLight.position.set(0.4, 2.8, -3.2);
+      scene.add(rimLight);
+
+      // Architectural Studio Runway Podium & Soft Shadow Floor
+      const shadowFloor = new THREE.Mesh(
+        new THREE.CircleGeometry(3.2, 64),
+        new THREE.ShadowMaterial({ opacity: 0.22 })
+      );
+      shadowFloor.rotation.x = -Math.PI / 2;
+      shadowFloor.position.y = 0.002;
+      shadowFloor.receiveShadow = true;
+      scene.add(shadowFloor);
+
+      const podiumGroup = new THREE.Group();
+      const podiumMat = new THREE.MeshStandardMaterial({
+        color: 0xe6e6e2,
+        roughness: 0.45,
+        metalness: 0.08
+      });
+      const podiumMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.76, 0.04, 64), podiumMat);
+      podiumMesh.position.y = -0.02;
+      podiumMesh.receiveShadow = true;
+      podiumGroup.add(podiumMesh);
+
+      const rimMat = new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.22 });
+      const podiumRim = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.735, 64), rimMat);
+      podiumRim.rotation.x = -Math.PI / 2;
+      podiumRim.position.y = 0.001;
+      podiumGroup.add(podiumRim);
+      scene.add(podiumGroup);
+
+      threeRef.current = {
+        ...threeRef.current,
+        renderer,
+        scene,
+        camera,
+        controls,
+        pmrem,
+        podiumGroup,
+        podiumMesh,
+        podiumRim,
+        keyLight,
+        fillLight,
+        loadedModels: {}
+      };
+      setWebglUnavailable(false);
+
+      const animate = () => {
+        frameId = requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      };
+      animate();
+
+      const handleResize = () => {
+        if (!containerRef.current || !threeRef.current.renderer) return;
+        const w = containerRef.current.clientWidth || 800;
+        const h = containerRef.current.clientHeight || 650;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      };
+      ro = new ResizeObserver(handleResize);
+      ro.observe(container);
+    } catch (err) {
+      console.warn('[Rawline3DFittingLab] WebGL initialization unavailable, switching to 2D studio mode:', err);
+      setWebglUnavailable(true);
+      setModelLoading(false);
+      setModelError('3D WebGL is disabled or unavailable in this browser. Showing 2D Editorial Fitting Studio.');
+      if (container) container.innerHTML = '';
+    }
 
     return () => {
-      cancelAnimationFrame(frameId);
-      ro.disconnect();
-      controls.dispose();
-      pmrem.dispose();
-      renderer.dispose();
+      if (frameId) cancelAnimationFrame(frameId);
+      if (ro) ro.disconnect();
+      if (renderer && handleContextLost) {
+        renderer.domElement.removeEventListener('webglcontextlost', handleContextLost, false);
+      }
+      if (controls) controls.dispose();
+      if (pmrem) pmrem.dispose();
+      if (renderer) renderer.dispose();
       if (container) container.innerHTML = '';
       threeRef.current.renderer = null;
       threeRef.current.scene = null;
@@ -1199,6 +1249,42 @@ export default function Rawline3DFittingLab({
             className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
           />
 
+          {/* 2D Editorial Fitting Studio Fallback when WebGL is disabled/blocked by browser */}
+          {webglUnavailable && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center p-6 sm:p-10 bg-gradient-to-b from-[#16161E] to-[#0B0B11] text-white">
+              <div className="max-w-lg w-full rounded-3xl border border-white/15 bg-[#12121A]/95 p-6 shadow-2xl flex flex-col sm:flex-row items-center gap-6">
+                <div className="w-44 aspect-[3/4] rounded-2xl overflow-hidden bg-[#ECECE9] shrink-0 border border-white/10">
+                  {(activeProduct?.image || activeProduct?.img) && (
+                    <img
+                      src={activeProduct.image || activeProduct.img}
+                      alt={activeProduct.name}
+                      className="w-full h-full object-cover object-top"
+                    />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 space-y-3 text-left">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EA301F]/15 border border-[#EA301F]/40 text-[#FF6B5C] text-[10px] font-mono uppercase tracking-wider">
+                    2D Editorial Fitting View
+                  </span>
+                  <h3 className="font-azeret font-bold text-base uppercase text-white">
+                    {activeProduct?.name || 'K Curated Piece'}
+                  </h3>
+                  <p className="text-xs text-[#A1A1AA] leading-relaxed">
+                    3D WebGL rendering is unavailable or blocked in this browser window (common with strict Brave Shields or disabled GPU acceleration). Size calibration ({recommendedSize} recommended for {heightCm} cm), colorway switching, and Add to Bag remain fully active.
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-mono">
+                    <span className="px-2.5 py-1 rounded-lg bg-white/10 text-white">
+                      Size: {selectedSize}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-lg bg-white/10 text-white">
+                      {normalizeColorLabel(activeColor)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Initial MAN vs WOMAN Onboarding Selector Overlay (when opening 3D Lab from global nav) */}
           {!hasPickedModel && (
             <div className="absolute inset-0 z-30 bg-black/75 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-200">
@@ -1532,12 +1618,13 @@ export default function Rawline3DFittingLab({
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {(activeProduct.colors || ['Standard']).map((cName, idx) => {
-                      const hex = getHexStr(cName, activeProduct);
-                      const active = activeColor === cName;
+                      const colorLabel = normalizeColorLabel(cName);
+                      const hex = getHexStr(colorLabel, activeProduct);
+                      const active = normalizeColorLabel(activeColor) === colorLabel;
                       return (
                         <button
-                          key={`${cName}-${idx}`}
-                          onClick={() => handleSelectColorForActive(cName)}
+                          key={`${colorLabel}-${idx}`}
+                          onClick={() => handleSelectColorForActive(colorLabel)}
                           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] transition-all cursor-pointer ${
                             active
                               ? 'border-[#EA301F] bg-[#EA301F]/20 text-white font-semibold'
@@ -1545,7 +1632,7 @@ export default function Rawline3DFittingLab({
                           }`}
                         >
                           <span className="w-3 h-3 rounded-sm border border-white/25" style={{ backgroundColor: hex }} />
-                          <span>{cName}</span>
+                          <span>{colorLabel}</span>
                         </button>
                       );
                     })}
@@ -1775,7 +1862,7 @@ export default function Rawline3DFittingLab({
             </div>
             <div className="flex-1 overflow-y-auto space-y-2 pr-1">
               {genderProducts
-                .filter((p) => !wardrobeSearch || p.name.toLowerCase().includes(wardrobeSearch.toLowerCase()))
+                .filter((p) => !wardrobeSearch || String(p?.name || '').toLowerCase().includes(wardrobeSearch.toLowerCase()))
                 .map((prod) => (
                   <button
                     key={prod.id}

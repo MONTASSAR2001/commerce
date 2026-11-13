@@ -244,7 +244,7 @@ export default function ZaraProductDetailPage({
             </button>
           )}
           <button
-            onClick={() => onOpenFittingLab({ ...product, img: heroImage, image: heroImage })}
+            onClick={() => onOpenFittingLab({ ...product, img: heroImage, image: heroImage, selectedColor: activeVariant?.name })}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-black/20 hover:border-[#EA301F] hover:bg-[#EA301F] hover:text-white text-[10px] font-mono uppercase tracking-[0.14em] transition-all cursor-pointer"
           >
             <Sparkles className="w-3 h-3" />
@@ -463,7 +463,7 @@ export default function ZaraProductDetailPage({
               </button>
 
               <button
-                onClick={() => onOpenFittingLab({ ...product, img: heroImage, image: heroImage })}
+                onClick={() => onOpenFittingLab({ ...product, img: heroImage, image: heroImage, selectedColor: activeVariant?.name })}
                 className="w-full py-3 text-[11px] font-mono uppercase tracking-[0.16em] border border-black/25 hover:border-[#111111] text-[#111111] hover:bg-[#F5F5F3] transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#EA301F]" />
@@ -538,7 +538,7 @@ export default function ZaraProductDetailPage({
                 {openAccordion === 'measurements' && (
                   <div className="pb-4 text-[11px] font-sans normal-case tracking-normal text-[#555555] space-y-1">
                     <p>{t('product.measurementsDesc')} (<span dir="ltr">{sizes.join(' / ')}</span>).</p>
-                    <p>{t('product.measurementsTipPrefix')} <button onClick={() => onOpenFittingLab({ ...product, img: heroImage, image: heroImage })} className="underline text-[#111111] font-medium cursor-pointer">{t('product.measurementsTipLink')}</button> {t('product.measurementsTipSuffix')}</p>
+                    <p>{t('product.measurementsTipPrefix')} <button onClick={() => onOpenFittingLab({ ...product, img: heroImage, image: heroImage, selectedColor: activeVariant?.name })} className="underline text-[#111111] font-medium cursor-pointer">{t('product.measurementsTipLink')}</button> {t('product.measurementsTipSuffix')}</p>
                   </div>
                 )}
               </div>
