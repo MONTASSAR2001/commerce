@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import RawlineMasterEngine from './components/RawlineMasterEngine';
-import AdminDashboard from './pages/AdminDashboard';
+import React, { Suspense, lazy, useState, useEffect, useCallback } from 'react';
 import { defaultKronosData } from './data/defaultRawlineData';
 import {
   loadLocalStoreData,
@@ -12,6 +10,14 @@ import {
   uploadMediaAsset
 } from './lib/kronosDataService';
 
+const RawlineMasterEngine = lazy(() => import('./components/RawlineMasterEngine'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+
+const RAW_APP_MODE = (import.meta.env.VITE_APP_MODE || 'all').toLowerCase().trim();
+const APP_MODE = RAW_APP_MODE === 'store' || RAW_APP_MODE === 'admin' ? RAW_APP_MODE : 'all';
+const STOREFRONT_URL = (import.meta.env.VITE_STOREFRONT_URL || '').trim().replace(/\/+$/, '');
+const ADMIN_URL = (import.meta.env.VITE_ADMIN_URL || '').trim().replace(/\/+$/, '');
+
 function isAdminPath(pathname = '', hash = '') {
   const cleanPath = (pathname || '').replace(/\/+$/, '');
   return (
@@ -21,6 +27,12 @@ function isAdminPath(pathname = '', hash = '') {
     cleanPath === '/dashboard' ||
     hash === '#admin'
   );
+}
+
+function resolveIsAdminRoute(pathname = '', hash = '') {
+  if (APP_MODE === 'admin') return true;
+  if (APP_MODE === 'store') return false;
+  return isAdminPath(pathname, hash);
 }
 
 const SETTING_SECTIONS = {
@@ -47,8 +59,8 @@ export default function App() {
   const [isFittingLabOpen, setIsFittingLabOpen] = useState(false);
   const [isAdminRoute, setIsAdminRoute] = useState(() =>
     typeof window !== 'undefined'
-      ? isAdminPath(window.location.pathname, window.location.hash)
-      : false
+      ? resolveIsAdminRoute(window.location.pathname, window.location.hash)
+      : APP_MODE === 'admin'
   );
 
   // Load persisted storefront + admin edits (falls back to defaultKronosData)
@@ -57,7 +69,7 @@ export default function App() {
   // Listen to browser navigation & navigate cleanly between storefront and independent Admin Studio
   useEffect(() => {
     const syncRoute = () => {
-      setIsAdminRoute(isAdminPath(window.location.pathname, window.location.hash));
+      setIsAdminRoute(resolveIsAdminRoute(window.location.pathname, window.location.hash));
     };
     window.addEventListener('popstate', syncRoute);
     window.addEventListener('hashchange', syncRoute);
@@ -68,12 +80,26 @@ export default function App() {
   }, []);
 
   const navigateTo = useCallback((targetPath = '/') => {
+    const wantsAdmin = isAdminPath(targetPath, '');
+    if (APP_MODE === 'admin' && !wantsAdmin) {
+      if (STOREFRONT_URL) {
+        const dest = `${STOREFRONT_URL}${targetPath === '/' ? '' : targetPath}`;
+        window.open(dest, '_blank', 'noopener,noreferrer');
+      }
+      return;
+    }
+    if (APP_MODE === 'store' && wantsAdmin) {
+      if (ADMIN_URL) {
+        window.open(ADMIN_URL, '_blank', 'noopener,noreferrer');
+      }
+      return;
+    }
     try {
       window.history.pushState({}, '', targetPath);
     } catch {
       // ignore sandbox history errors
     }
-    setIsAdminRoute(isAdminPath(targetPath, ''));
+    setIsAdminRoute(resolveIsAdminRoute(targetPath, ''));
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
@@ -245,36 +271,53 @@ export default function App() {
     return res?.publicUrl;
   }, []);
 
+  const handleOpenAdminAction =
+    APP_MODE === 'store'
+      ? ADMIN_URL
+        ? () => window.open(ADMIN_URL, '_blank', 'noopener,noreferrer')
+        : null
+      : () => navigateTo('/admin-kronos-2026');
+
+  const loaderFallback = (
+    <div className="min-h-screen flex items-center justify-center bg-[#111111] text-[#FFFFE3] font-mono text-xs tracking-widest uppercase">
+      Loading K...
+    </div>
+  );
+
   if (isAdminRoute) {
     return (
-      <AdminDashboard
-        data={data}
-        onUpdateField={handleUpdateField}
-        onAddProduct={handleAddProduct}
-        onUpdateProduct={handleUpdateProduct}
-        onDeleteProduct={handleDeleteProduct}
-        onHydrateData={handleHydrateData}
-        onResetDefaults={handleResetDefaults}
-        onNavigateStore={navigateTo}
-      />
+      <Suspense fallback={loaderFallback}>
+        <AdminDashboard
+          data={data}
+          onUpdateField={handleUpdateField}
+          onAddProduct={handleAddProduct}
+          onUpdateProduct={handleUpdateProduct}
+          onDeleteProduct={handleDeleteProduct}
+          onHydrateData={handleHydrateData}
+          onResetDefaults={handleResetDefaults}
+          onNavigateStore={navigateTo}
+        />
+      </Suspense>
     );
   }
 
   return (
     <div className="min-h-screen bg-[#111111] text-[#FFFFE3] font-sans selection:bg-[#EA301F] selection:text-white">
-      <RawlineMasterEngine
-        data={data}
-        onUpdateField={handleUpdateField}
-        onAddProduct={handleAddProduct}
-        onUpdateProduct={handleUpdateProduct}
-        onDeleteProduct={handleDeleteProduct}
-        uploadImage={handleUploadImage}
-        isStore={true}
-        hasTopNav={false}
-        externalFittingLabOpen={isFittingLabOpen}
-        onCloseFittingLab={() => setIsFittingLabOpen(false)}
-        onOpenAdmin={() => navigateTo('/admin-kronos-2026')}
-      />
+      <Suspense fallback={loaderFallback}>
+        <RawlineMasterEngine
+          data={data}
+          onUpdateField={handleUpdateField}
+          onAddProduct={handleAddProduct}
+          onUpdateProduct={handleUpdateProduct}
+          onDeleteProduct={handleDeleteProduct}
+          uploadImage={handleUploadImage}
+          isStore={true}
+          hasTopNav={false}
+          externalFittingLabOpen={isFittingLabOpen}
+          onCloseFittingLab={() => setIsFittingLabOpen(false)}
+          onOpenAdmin={handleOpenAdminAction}
+        />
+      </Suspense>
     </div>
   );
 }
