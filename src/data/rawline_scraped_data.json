@@ -1,0 +1,2956 @@
+{
+  "title": "RAWLINE",
+  "nav": null,
+  "sections": [
+    {
+      "name": "Hero",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 900,
+      "padding": "0px",
+      "margin": "0px",
+      "gap": "5px",
+      "display": "flex",
+      "flexDirection": "row",
+      "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [
+        {
+          "src": "https://framerusercontent.com/images/KxF8H6qGSaJvRZEhALbixoOrQg.jpg?width=1920&height=2400",
+          "alt": "Three stylishly dressed Black men posing together",
+          "w": 1134,
+          "h": 1418
+        },
+        {
+          "src": "https://framerusercontent.com/images/3ZytNmcPnRvgkQrdPfnjNSmUHQ.png?width=1024&height=1024",
+          "alt": "",
+          "w": 1024,
+          "h": 1024
+        },
+        {
+          "src": "https://framerusercontent.com/images/6MIsvegyvwYMBVhFkyNRH7g8Jc.png?width=842&height=842",
+          "alt": "",
+          "w": 842,
+          "h": 842
+        },
+        {
+          "src": "https://framerusercontent.com/images/M1vOWPrCcf5XAWjRTtfzuAOTUI.png?width=864&height=1184",
+          "alt": "",
+          "w": 864,
+          "h": 1184
+        },
+        {
+          "src": "https://framerusercontent.com/images/3ZytNmcPnRvgkQrdPfnjNSmUHQ.png?width=1024&height=1024",
+          "alt": "",
+          "w": 1024,
+          "h": 1024
+        },
+        {
+          "src": "https://framerusercontent.com/images/6MIsvegyvwYMBVhFkyNRH7g8Jc.png?width=842&height=842",
+          "alt": "",
+          "w": 842,
+          "h": 842
+        },
+        {
+          "src": "https://framerusercontent.com/images/M1vOWPrCcf5XAWjRTtfzuAOTUI.png?width=864&height=1184",
+          "alt": "",
+          "w": 864,
+          "h": 1184
+        },
+        {
+          "src": "https://framerusercontent.com/images/3ZytNmcPnRvgkQrdPfnjNSmUHQ.png?width=1024&height=1024",
+          "alt": "",
+          "w": 1024,
+          "h": 1024
+        },
+        {
+          "src": "https://framerusercontent.com/images/6MIsvegyvwYMBVhFkyNRH7g8Jc.png?width=842&height=842",
+          "alt": "",
+          "w": 842,
+          "h": 842
+        },
+        {
+          "src": "https://framerusercontent.com/images/M1vOWPrCcf5XAWjRTtfzuAOTUI.png?width=864&height=1184",
+          "alt": "",
+          "w": 864,
+          "h": 1184
+        },
+        {
+          "src": "https://framerusercontent.com/images/3ZytNmcPnRvgkQrdPfnjNSmUHQ.png?width=1024&height=1024",
+          "alt": "",
+          "w": 1024,
+          "h": 1024
+        },
+        {
+          "src": "https://framerusercontent.com/images/6MIsvegyvwYMBVhFkyNRH7g8Jc.png?width=842&height=842",
+          "alt": "",
+          "w": 842,
+          "h": 842
+        },
+        {
+          "src": "https://framerusercontent.com/images/M1vOWPrCcf5XAWjRTtfzuAOTUI.png?width=864&height=1184",
+          "alt": "",
+          "w": 864,
+          "h": 1184
+        }
+      ],
+      "cards": [],
+      "texts": [
+        {
+          "tag": "P",
+          "text": "DRESS THE UNCONVENTIONAL",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "H1",
+          "text": "WEAR THE HYPE \"RAW\"",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "96px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-4.8px",
+          "lineHeight": "76.8px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "SHOP NOW",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "SHOP NOW",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        }
+      ]
+    },
+    {
+      "name": "About Us",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 900,
+      "padding": "0px",
+      "margin": "0px",
+      "gap": "0px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [
+        {
+          "src": "https://framerusercontent.com/images/2LEsj8dTfuADr3ESmjj0dA2TgA.webp?width=3000&height=2000",
+          "alt": "Four friends in winter streetwear laughing in an underpass",
+          "w": 1440,
+          "h": 959
+        }
+      ],
+      "cards": [],
+      "texts": [
+        {
+          "tag": "H4",
+          "text": "us",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H2",
+          "text": "ABOUT",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "RAWLINE IS MORE THAN CLOTHING, IT’S A MOVEMENT. BORN FROM THE STREETS, DRIVEN BY CULTURE, AND MADE FOR TRENDSETTERS. BOLD DROPS, EXCLUSIVE COLLABS, AND FEARLESS ENERGY DEFINE THOSE WHO STAY FRESH.",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "VIEW MORE",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "VIEW MORE",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        }
+      ]
+    },
+    {
+      "name": "Ongoing Drops",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 822,
+      "padding": "50px 20px 0px",
+      "margin": "0px",
+      "gap": "0px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [
+        {
+          "src": "https://framerusercontent.com/images/BJfrkmv0iyiZnReeFBXU944wCT0.webp?width=1920&height=2880",
+          "alt": "A person sits on a red carpet, holding a record cover over their face in a room filled with vintage speakers.",
+          "w": 1440,
+          "h": 2160
+        },
+        {
+          "src": "https://framerusercontent.com/images/BJfrkmv0iyiZnReeFBXU944wCT0.webp?width=1920&height=2880",
+          "alt": "A person sits on a red carpet, holding a record cover over their face in a room filled with vintage speakers.",
+          "w": 1440,
+          "h": 2160
+        },
+        {
+          "src": "https://framerusercontent.com/images/klOLqeBgESjqUBiaPQqHCqBgSw.webp?width=1500&height=1000",
+          "alt": "A woman in a trench coat on a grassy hill at twilight",
+          "w": 1440,
+          "h": 960
+        },
+        {
+          "src": "https://framerusercontent.com/images/klOLqeBgESjqUBiaPQqHCqBgSw.webp?width=1500&height=1000",
+          "alt": "A woman in a trench coat on a grassy hill at twilight",
+          "w": 1440,
+          "h": 960
+        },
+        {
+          "src": "https://framerusercontent.com/images/AjgCZ4E1sAjZEW1TZ6ZVu33NPkM.webp?width=1600&height=2000",
+          "alt": "A young man leaning on a stack of books in a library",
+          "w": 1440,
+          "h": 1800
+        },
+        {
+          "src": "https://framerusercontent.com/images/AjgCZ4E1sAjZEW1TZ6ZVu33NPkM.webp?width=1600&height=2000",
+          "alt": "A young man leaning on a stack of books in a library",
+          "w": 1440,
+          "h": 1800
+        },
+        {
+          "src": "https://framerusercontent.com/images/4vUs4HLPNlCncNlBLQAX4n9W9A.png?width=471&height=129",
+          "alt": "",
+          "w": 471,
+          "h": 129
+        }
+      ],
+      "cards": [
+        {
+          "name": "Drops Container",
+          "text": "RAWLINE X NOVA\n\nMINIMAL FORM MEETS FUTURE FABRIC FOR EVERYDAY VERSATILITY AND EDGE.\n\nRAWLINE X VERO\n\nCHARGED CUTS, LAYERED TEXTURES, AND RESTLESS CITY ENERGY.\n\nRAWLINE X LUNA\n\nSOFT TONES, FLUID DRAPES, AND ATMOSPHERIC TEXTURES.",
+          "w": 1400,
+          "h": 720
+        },
+        {
+          "name": "Drop Rectangle",
+          "text": "RAWLINE X NOVA\n\nMINIMAL FORM MEETS FUTURE FABRIC FOR EVERYDAY VERSATILITY AND EDGE.",
+          "w": 1400,
+          "h": 355
+        },
+        {
+          "name": "Drop Rectangle",
+          "text": "RAWLINE X VERO\n\nCHARGED CUTS, LAYERED TEXTURES, AND RESTLESS CITY ENERGY.",
+          "w": 695,
+          "h": 355
+        },
+        {
+          "name": "Drop Rectangle",
+          "text": "RAWLINE X LUNA\n\nSOFT TONES, FLUID DRAPES, AND ATMOSPHERIC TEXTURES.",
+          "w": 695,
+          "h": 355
+        }
+      ],
+      "texts": [
+        {
+          "tag": "H4",
+          "text": "latest",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "DROPS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "VIEW ALL",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H5",
+          "text": "VIEW ALL",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "32px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.6px",
+          "lineHeight": "25.6px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "RAWLINE X NOVA\n\nMINIMAL FORM MEETS FUTURE FABRIC FOR EVERYDAY VERSATILITY AND EDGE.",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "RAWLINE X NOVA",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "MINIMAL FORM MEETS FUTURE FABRIC FOR EVERYDAY VERSATILITY AND EDGE.",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "RAWLINE X VERO\n\nCHARGED CUTS, LAYERED TEXTURES, AND RESTLESS CITY ENERGY.",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "RAWLINE X VERO",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "CHARGED CUTS, LAYERED TEXTURES, AND RESTLESS CITY ENERGY.",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "RAWLINE X LUNA\n\nSOFT TONES, FLUID DRAPES, AND ATMOSPHERIC TEXTURES.",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "RAWLINE X LUNA",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "SOFT TONES, FLUID DRAPES, AND ATMOSPHERIC TEXTURES.",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        }
+      ]
+    },
+    {
+      "name": "On Sale",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 982,
+      "padding": "50px 20px 0px",
+      "margin": "0px",
+      "gap": "0px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [
+        {
+          "src": "https://framerusercontent.com/images/3ZytNmcPnRvgkQrdPfnjNSmUHQ.png?width=1024&height=1024",
+          "alt": "",
+          "w": 342,
+          "h": 342
+        },
+        {
+          "src": "https://framerusercontent.com/images/6MIsvegyvwYMBVhFkyNRH7g8Jc.png?width=842&height=842",
+          "alt": "",
+          "w": 342,
+          "h": 342
+        },
+        {
+          "src": "https://framerusercontent.com/images/0C5uT36qhCzbjJXYZ3G9oSfakE.png?width=796&height=796",
+          "alt": "",
+          "w": 342,
+          "h": 342
+        },
+        {
+          "src": "https://framerusercontent.com/images/DOI2BlFnOLTaxn4GyYPQRPKIB0.png?width=910&height=910",
+          "alt": "",
+          "w": 342,
+          "h": 342
+        },
+        {
+          "src": "https://framerusercontent.com/images/g9LlmajmSw2xLkg6u3zM5LQ7hD0.png?width=766&height=766",
+          "alt": "",
+          "w": 342,
+          "h": 342
+        },
+        {
+          "src": "https://framerusercontent.com/images/mpHmfjvHxDqVECG0phNtm1stCg.png?width=982&height=982",
+          "alt": "",
+          "w": 342,
+          "h": 342
+        },
+        {
+          "src": "https://framerusercontent.com/images/yVj6gnd1cIKPOcghrNcFH00jBsI.png?width=818&height=818",
+          "alt": "",
+          "w": 342,
+          "h": 342
+        },
+        {
+          "src": "https://framerusercontent.com/images/CgLTCwizOUrmynOaa9H1WKiL8c.png?width=910&height=910",
+          "alt": "crew-neck-1",
+          "w": 342,
+          "h": 342
+        }
+      ],
+      "cards": [
+        {
+          "name": "Products Container",
+          "text": "HORIZON BLUE LONG SLEEVE COTTON CLASSIC\n\n$578.00\n\n$759.99\n\n24% OFF\n\nSKY SOCKS\n\n$20.00\n\n$35.00\n\n43% OFF\n\nECLIPSE KNIT CARDIGAN\n\n$325.00\n\n$450.00\n\n28% OFF\n\nCAVALRY SHIRT\n\n$245.00\n\n$339.99\n\n28% OFF\n\nSTRATOS 95 SP - DIFFUSED TAUPE LAYERS EDITION\n\n$688.00\n\n$750.00\n\n8% OFF\n\nDARK BLUE EARTHY FADE JEANS\n\n$215.99\n\n$299.99\n\n28% OFF\n\nRED CHECEKERED SHIRT\n\n$315.99\n\n$399.99\n\n21% OFF\n\nCLASSIC CREW NECK\n\n$129.99\n\n$199.99\n\n35% OFF",
+          "w": 1400,
+          "h": 880
+        },
+        {
+          "name": "Product + Price",
+          "text": "HORIZON BLUE LONG SLEEVE COTTON CLASSIC\n\n$578.00\n\n$759.99",
+          "w": 313,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "HORIZON BLUE LONG SLEEVE COTTON CLASSIC",
+          "w": 313,
+          "h": 48
+        },
+        {
+          "name": "Product + Price",
+          "text": "SKY SOCKS\n\n$20.00\n\n$35.00",
+          "w": 313,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "SKY SOCKS",
+          "w": 313,
+          "h": 24
+        },
+        {
+          "name": "Product + Price",
+          "text": "ECLIPSE KNIT CARDIGAN\n\n$325.00\n\n$450.00",
+          "w": 313,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "ECLIPSE KNIT CARDIGAN",
+          "w": 313,
+          "h": 24
+        },
+        {
+          "name": "Product + Price",
+          "text": "CAVALRY SHIRT\n\n$245.00\n\n$339.99",
+          "w": 313,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "CAVALRY SHIRT",
+          "w": 313,
+          "h": 24
+        },
+        {
+          "name": "Product + Price",
+          "text": "STRATOS 95 SP - DIFFUSED TAUPE LAYERS EDITION\n\n$688.00\n\n$750.00",
+          "w": 313,
+          "h": 140
+        }
+      ],
+      "texts": [
+        {
+          "tag": "H4",
+          "text": "black friday",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "SALE",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "VIEW ALL",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H5",
+          "text": "VIEW ALL",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "32px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.6px",
+          "lineHeight": "25.6px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "HORIZON BLUE LONG SLEEVE COTTON CLASSIC\n\n$578.00\n\n$759.99",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "HORIZON BLUE LONG SLEEVE COTTON CLASSIC",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$578.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "$759.99",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "500",
+          "color": "rgb(120, 120, 120)",
+          "letterSpacing": "normal",
+          "lineHeight": "16px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "24% OFF",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "11.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-0.336px",
+          "lineHeight": "10.08px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "SKY SOCKS\n\n$20.00\n\n$35.00",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "SKY SOCKS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$20.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "$35.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "500",
+          "color": "rgb(120, 120, 120)",
+          "letterSpacing": "normal",
+          "lineHeight": "16px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "43% OFF",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "11.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-0.336px",
+          "lineHeight": "10.08px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "ECLIPSE KNIT CARDIGAN\n\n$325.00\n\n$450.00",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "ECLIPSE KNIT CARDIGAN",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$325.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "$450.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "500",
+          "color": "rgb(120, 120, 120)",
+          "letterSpacing": "normal",
+          "lineHeight": "16px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "28% OFF",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "11.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-0.336px",
+          "lineHeight": "10.08px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "CAVALRY SHIRT\n\n$245.00\n\n$339.99",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "CAVALRY SHIRT",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$245.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "$339.99",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "500",
+          "color": "rgb(120, 120, 120)",
+          "letterSpacing": "normal",
+          "lineHeight": "16px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "28% OFF",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "11.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-0.336px",
+          "lineHeight": "10.08px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "STRATOS 95 SP - DIFFUSED TAUPE LAYERS EDITION\n\n$688.00\n\n$750.00",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        }
+      ]
+    },
+    {
+      "name": "Features",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 950,
+      "padding": "50px 20px 0px",
+      "margin": "0px",
+      "gap": "0px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [],
+      "cards": [],
+      "texts": [
+        {
+          "tag": "H4",
+          "text": "why",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "SPAN",
+          "text": "why",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "SPAN",
+          "text": "w",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "SPAN",
+          "text": "h",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "SPAN",
+          "text": "y",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "RAWLINE?",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "RAWLINE?",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "R",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "A",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "W",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "L",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "I",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "N",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "E",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "?",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "GET YOUR ORDER DELIVERED QUICKLY, STRAIGHT TO YOUR DOOR.",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "H4",
+          "text": "FAST SHIPPING",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "3–5 BUSINESS DAYS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "color": "rgb(120, 120, 120)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "RETURN YOUR ITEMS HASSLE-FREE. OUR FLEXIBLE POLICY MAKES IT SIMPLE.",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "H4",
+          "text": "EASY RETURNS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "7 DAYS FROM DELIVERY",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "color": "rgb(120, 120, 120)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "PAY FOR YOUR ORDER WITH CONFIDENCE. YOUR DETAILS ARE ALWAYS PROTECTED.",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "H4",
+          "text": "SECURE PAYMENTS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "BANK-GRADE SSL PROTECTION",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "color": "rgb(120, 120, 120)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "GET THE HELP YOU NEED, FAST. OUR DEDICATED TEAM IS HERE FOR YOU.",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 1452,
+      "padding": "50px 20px 0px",
+      "margin": "0px",
+      "gap": "0px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [
+        {
+          "src": "https://framerusercontent.com/images/v0XCMMD3lRM3TU0xC5O5upOnFM.jpeg?width=3000&height=4000",
+          "alt": "A pair of red sneakers hanging by their laces against a blue sky",
+          "w": 695,
+          "h": 926
+        },
+        {
+          "src": "https://framerusercontent.com/images/v0XCMMD3lRM3TU0xC5O5upOnFM.jpeg?width=3000&height=4000",
+          "alt": "A pair of red sneakers hanging by their laces against a blue sky",
+          "w": 695,
+          "h": 926
+        },
+        {
+          "src": "https://framerusercontent.com/images/SPZzAXp3MGGvfY6xYZzIzXbt9HI.jpeg?width=2000&height=3000",
+          "alt": "A woman in sunglasses and a graphic t-shirt poses for a flash photo",
+          "w": 694,
+          "h": 1042
+        },
+        {
+          "src": "https://framerusercontent.com/images/SPZzAXp3MGGvfY6xYZzIzXbt9HI.jpeg?width=2000&height=3000",
+          "alt": "A woman in sunglasses and a graphic t-shirt poses for a flash photo",
+          "w": 694,
+          "h": 1042
+        },
+        {
+          "src": "https://framerusercontent.com/images/US3m591Ba1oBNTKd7x1ZpQRKnco.png?width=655&height=1200",
+          "alt": "The back of a man wearing a dark green hoodie",
+          "w": 694,
+          "h": 1273
+        },
+        {
+          "src": "https://framerusercontent.com/images/US3m591Ba1oBNTKd7x1ZpQRKnco.png?width=655&height=1200",
+          "alt": "The back of a man wearing a dark green hoodie",
+          "w": 694,
+          "h": 1273
+        },
+        {
+          "src": "https://framerusercontent.com/images/sryKbTpcRyaW7v3XxPsUwHUFyVw.jpeg?width=4928&height=3280",
+          "alt": "A young woman in a bomber jacket poses outdoors",
+          "w": 695,
+          "h": 462
+        },
+        {
+          "src": "https://framerusercontent.com/images/sryKbTpcRyaW7v3XxPsUwHUFyVw.jpeg?width=4928&height=3280",
+          "alt": "A young woman in a bomber jacket poses outdoors",
+          "w": 695,
+          "h": 462
+        },
+        {
+          "src": "https://framerusercontent.com/images/LIiUpXMeQEBfuNgYYaeO1PyL5BA.jpg?width=800&height=1200",
+          "alt": "A blue shirt hanging on a wall next to a folded wooden chair",
+          "w": 695,
+          "h": 1042
+        },
+        {
+          "src": "https://framerusercontent.com/images/LIiUpXMeQEBfuNgYYaeO1PyL5BA.jpg?width=800&height=1200",
+          "alt": "A blue shirt hanging on a wall next to a folded wooden chair",
+          "w": 695,
+          "h": 1042
+        },
+        {
+          "src": "https://framerusercontent.com/images/mqgBZP4952uBDqPQX6hHfyoX6fM.png?width=859&height=1200",
+          "alt": "A person wearing red socks with black loafers and cropped jeans",
+          "w": 694,
+          "h": 970
+        },
+        {
+          "src": "https://framerusercontent.com/images/mqgBZP4952uBDqPQX6hHfyoX6fM.png?width=859&height=1200",
+          "alt": "A person wearing red socks with black loafers and cropped jeans",
+          "w": 694,
+          "h": 970
+        },
+        {
+          "src": "https://framerusercontent.com/images/CiHimviYwfud7xwSwJVc0ykQGQ.png?width=960&height=1200",
+          "alt": "Nine colorful handbags displayed on illuminated shelves",
+          "w": 694,
+          "h": 868
+        },
+        {
+          "src": "https://framerusercontent.com/images/CiHimviYwfud7xwSwJVc0ykQGQ.png?width=960&height=1200",
+          "alt": "Nine colorful handbags displayed on illuminated shelves",
+          "w": 694,
+          "h": 868
+        }
+      ],
+      "cards": [
+        {
+          "name": "Drop Rectangle",
+          "text": "SHOES",
+          "w": 695,
+          "h": 262
+        },
+        {
+          "name": "Drop Rectangle",
+          "text": "T-SHIRT",
+          "w": 695,
+          "h": 534
+        },
+        {
+          "name": "Drop Rectangle",
+          "text": "HOODIE",
+          "w": 695,
+          "h": 262
+        },
+        {
+          "name": "Drop Rectangle",
+          "text": "JACKET",
+          "w": 695,
+          "h": 534
+        },
+        {
+          "name": "Drop Rectangle",
+          "text": "SHIRT",
+          "w": 695,
+          "h": 262
+        },
+        {
+          "name": "Drop Rectangle",
+          "text": "JEANS",
+          "w": 695,
+          "h": 534
+        },
+        {
+          "name": "Drop Rectangle",
+          "text": "ACCESSORIES",
+          "w": 695,
+          "h": 262
+        }
+      ],
+      "texts": [
+        {
+          "tag": "H4",
+          "text": "CATEGORIES",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "SHOP ALL",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H5",
+          "text": "SHOP ALL",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "32px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.6px",
+          "lineHeight": "25.6px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "SHOES",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "SHOES",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "T-SHIRT",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "T-SHIRT",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "HOODIE",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "HOODIE",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "JACKET",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "JACKET",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "SHIRT",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "SHIRT",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "JEANS",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "JEANS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "ACCESSORIES",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "ACCESSORIES",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        }
+      ]
+    },
+    {
+      "name": "Holy Grails",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 980,
+      "padding": "50px 20px",
+      "margin": "0px",
+      "gap": "0px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [
+        {
+          "src": "https://framerusercontent.com/images/3ZytNmcPnRvgkQrdPfnjNSmUHQ.png?width=1024&height=1024",
+          "alt": "",
+          "w": 1440,
+          "h": 1440
+        },
+        {
+          "src": "https://framerusercontent.com/images/Y4WdVAdjEYoqP3hfDIDIZcs5nQ.png?width=1024&height=1024",
+          "alt": "",
+          "w": 1440,
+          "h": 1440
+        },
+        {
+          "src": "https://framerusercontent.com/images/DOI2BlFnOLTaxn4GyYPQRPKIB0.png?width=910&height=910",
+          "alt": "",
+          "w": 1440,
+          "h": 1440
+        },
+        {
+          "src": "https://framerusercontent.com/images/JSSRUPNQJ8ReBMPpOfswqFx54.png?width=938&height=938",
+          "alt": "",
+          "w": 1440,
+          "h": 1440
+        },
+        {
+          "src": "https://framerusercontent.com/images/g9LlmajmSw2xLkg6u3zM5LQ7hD0.png?width=766&height=766",
+          "alt": "",
+          "w": 1440,
+          "h": 1440
+        },
+        {
+          "src": "https://framerusercontent.com/images/mpHmfjvHxDqVECG0phNtm1stCg.png?width=982&height=982",
+          "alt": "",
+          "w": 1440,
+          "h": 1440
+        }
+      ],
+      "cards": [
+        {
+          "name": "Product + Price",
+          "text": "HORIZON BLUE LONG SLEEVE COTTON CLASSIC\n\n$578.00\n\n$759.99",
+          "w": 342,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "HORIZON BLUE LONG SLEEVE COTTON CLASSIC",
+          "w": 342,
+          "h": 48
+        },
+        {
+          "name": "Product + Price",
+          "text": "BRUSHED BOMBER HOODIE\n\n$247.00",
+          "w": 342,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "BRUSHED BOMBER HOODIE",
+          "w": 342,
+          "h": 24
+        },
+        {
+          "name": "Product + Price",
+          "text": "CAVALRY SHIRT\n\n$245.00\n\n$339.99",
+          "w": 342,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "CAVALRY SHIRT",
+          "w": 342,
+          "h": 24
+        },
+        {
+          "name": "Product + Price",
+          "text": "BLUE DENIM JACKET\n\n$478.00",
+          "w": 342,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "BLUE DENIM JACKET",
+          "w": 342,
+          "h": 24
+        },
+        {
+          "name": "Product + Price",
+          "text": "STRATOS 95 SP - DIFFUSED TAUPE LAYERS EDITION\n\n$688.00\n\n$750.00",
+          "w": 342,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "STRATOS 95 SP - DIFFUSED TAUPE LAYERS EDITION",
+          "w": 342,
+          "h": 72
+        }
+      ],
+      "texts": [
+        {
+          "tag": "H4",
+          "text": "holy",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "SPAN",
+          "text": "holy",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "SPAN",
+          "text": "h",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "SPAN",
+          "text": "o",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "SPAN",
+          "text": "l",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "SPAN",
+          "text": "y",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H2",
+          "text": "GRAILS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "GRAILS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "G",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "R",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "A",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "I",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "L",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "SPAN",
+          "text": "S",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "VIEW ALL",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H5",
+          "text": "VIEW ALL",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "32px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.6px",
+          "lineHeight": "25.6px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "HORIZON BLUE LONG SLEEVE COTTON CLASSIC\n\n$578.00\n\n$759.99",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "HORIZON BLUE LONG SLEEVE COTTON CLASSIC",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$578.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "$759.99",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "500",
+          "color": "rgb(120, 120, 120)",
+          "letterSpacing": "normal",
+          "lineHeight": "16px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "24% OFF",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "11.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-0.336px",
+          "lineHeight": "10.08px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "BRUSHED BOMBER HOODIE\n\n$247.00",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "BRUSHED BOMBER HOODIE",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$247.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "CAVALRY SHIRT\n\n$245.00\n\n$339.99",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        }
+      ]
+    },
+    {
+      "name": "Video",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 900,
+      "padding": "0px",
+      "margin": "0px",
+      "gap": "10px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [],
+      "cards": [],
+      "texts": [
+        {
+          "tag": "H4",
+          "text": "clothing",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H2",
+          "text": "RAWLINE",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "SHOP COLLECTION",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "SHOP COLLECTION",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        }
+      ]
+    },
+    {
+      "name": "New arrivals",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 1027,
+      "padding": "50px 20px 0px",
+      "margin": "0px",
+      "gap": "0px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [
+        {
+          "src": "https://framerusercontent.com/images/M1vOWPrCcf5XAWjRTtfzuAOTUI.png?width=864&height=1184",
+          "alt": "",
+          "w": 282,
+          "h": 387
+        },
+        {
+          "src": "https://framerusercontent.com/images/pKv4Us5BSBO8V6XiEQBTiVJpkM.png?width=1024&height=1024",
+          "alt": "",
+          "w": 282,
+          "h": 282
+        },
+        {
+          "src": "https://framerusercontent.com/images/0C5uT36qhCzbjJXYZ3G9oSfakE.png?width=796&height=796",
+          "alt": "",
+          "w": 282,
+          "h": 282
+        },
+        {
+          "src": "https://framerusercontent.com/images/xfFD4pERuE1cg3KquRgBe2aOwd8.png?width=830&height=830",
+          "alt": "",
+          "w": 282,
+          "h": 282
+        },
+        {
+          "src": "https://framerusercontent.com/images/g9LlmajmSw2xLkg6u3zM5LQ7hD0.png?width=766&height=766",
+          "alt": "",
+          "w": 282,
+          "h": 282
+        },
+        {
+          "src": "https://framerusercontent.com/images/mpHmfjvHxDqVECG0phNtm1stCg.png?width=982&height=982",
+          "alt": "",
+          "w": 282,
+          "h": 282
+        },
+        {
+          "src": "https://framerusercontent.com/images/yVj6gnd1cIKPOcghrNcFH00jBsI.png?width=818&height=818",
+          "alt": "",
+          "w": 282,
+          "h": 282
+        },
+        {
+          "src": "https://framerusercontent.com/images/NX9Oa3DRz7bWxUYQD9liZexf3MQ.png?width=884&height=884",
+          "alt": "",
+          "w": 282,
+          "h": 282
+        }
+      ],
+      "cards": [
+        {
+          "name": "Products Container",
+          "text": "OLIVIA WIDE LEG JEANS\n\n$249.00\n\nCRIMSON CARRYALL BAG\n\n$55.00\n\nECLIPSE KNIT CARDIGAN\n\n$325.00\n\n$450.00\n\n28% OFF\n\nWHITE TRAINER SNEAKERS\n\n$1,450.00\n\nSTRATOS 95 SP - DIFFUSED TAUPE LAYERS EDITION\n\n$688.00\n\n$750.00\n\n8% OFF\n\nDARK BLUE EARTHY FADE JEANS\n\n$215.99\n\n$299.99\n\n28% OFF\n\nRED CHECEKERED SHIRT\n\n$315.99\n\n$399.99\n\n21% OFF\n\nIVY GREEN HOODIE\n\n$225.49",
+          "w": 1400,
+          "h": 880
+        },
+        {
+          "name": "Product + Price",
+          "text": "OLIVIA WIDE LEG JEANS\n\n$249.00",
+          "w": 313,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "OLIVIA WIDE LEG JEANS",
+          "w": 313,
+          "h": 24
+        },
+        {
+          "name": "Product + Price",
+          "text": "CRIMSON CARRYALL BAG\n\n$55.00",
+          "w": 313,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "CRIMSON CARRYALL BAG",
+          "w": 313,
+          "h": 24
+        },
+        {
+          "name": "Product + Price",
+          "text": "ECLIPSE KNIT CARDIGAN\n\n$325.00\n\n$450.00",
+          "w": 313,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "ECLIPSE KNIT CARDIGAN",
+          "w": 313,
+          "h": 24
+        },
+        {
+          "name": "Product + Price",
+          "text": "WHITE TRAINER SNEAKERS\n\n$1,450.00",
+          "w": 313,
+          "h": 140
+        },
+        {
+          "name": "Product",
+          "text": "WHITE TRAINER SNEAKERS",
+          "w": 313,
+          "h": 48
+        },
+        {
+          "name": "Product + Price",
+          "text": "STRATOS 95 SP - DIFFUSED TAUPE LAYERS EDITION\n\n$688.00\n\n$750.00",
+          "w": 313,
+          "h": 140
+        }
+      ],
+      "texts": [
+        {
+          "tag": "H4",
+          "text": "new",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "ARRIVALS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "MEN",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "12.8px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-0.384px",
+          "lineHeight": "12.8px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "WOMEN",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "12.8px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-0.384px",
+          "lineHeight": "12.8px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "VIEW ALL",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H5",
+          "text": "VIEW ALL",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "32px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.6px",
+          "lineHeight": "25.6px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "OLIVIA WIDE LEG JEANS\n\n$249.00",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "OLIVIA WIDE LEG JEANS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$249.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "CRIMSON CARRYALL BAG\n\n$55.00",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "CRIMSON CARRYALL BAG",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$55.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "ECLIPSE KNIT CARDIGAN\n\n$325.00\n\n$450.00",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "ECLIPSE KNIT CARDIGAN",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$325.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "$450.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "500",
+          "color": "rgb(120, 120, 120)",
+          "letterSpacing": "normal",
+          "lineHeight": "16px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "28% OFF",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "11.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-0.336px",
+          "lineHeight": "10.08px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "WHITE TRAINER SNEAKERS\n\n$1,450.00",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "WHITE TRAINER SNEAKERS",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$1,450.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "STRATOS 95 SP - DIFFUSED TAUPE LAYERS EDITION\n\n$688.00\n\n$750.00",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H6",
+          "text": "STRATOS 95 SP - DIFFUSED TAUPE LAYERS EDITION",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "24px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.2px",
+          "lineHeight": "24px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "$688.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "22.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "$750.00",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "500",
+          "color": "rgb(120, 120, 120)",
+          "letterSpacing": "normal",
+          "lineHeight": "16px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "8% OFF",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "11.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-0.336px",
+          "lineHeight": "10.08px",
+          "textTransform": "none"
+        }
+      ]
+    },
+    {
+      "name": "Social Wall",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 1204,
+      "padding": "50px 20px",
+      "margin": "0px",
+      "gap": "0px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [
+        {
+          "src": "https://framerusercontent.com/images/4JyNJK5h7DVDfgID8lBKhy3M.jpg?width=640&height=960",
+          "alt": "A black-and-white photo of a woman in a headscarf and patterned pants",
+          "w": 342,
+          "h": 513
+        },
+        {
+          "src": "https://framerusercontent.com/images/vfprU5p4ewa5iy7pKy0FpdX3A.jpg?width=640&height=960",
+          "alt": "A stylish man wearing a headscarf and sunglasses poses on a light blue bicycle",
+          "w": 342,
+          "h": 513
+        },
+        {
+          "src": "https://framerusercontent.com/images/grQPT0mJNGR4u9N7bpUUkvk720w.webp?width=800&height=1000",
+          "alt": "A young man in a graphic sweater looks up while leaning against a tree",
+          "w": 342,
+          "h": 428
+        },
+        {
+          "src": "https://framerusercontent.com/images/aoQHDlgf24ATYxdu0msFV5QjCU.webp?width=671&height=800",
+          "alt": "A woman in a white sweatsuit runs on a rooftop with a city skyline behind her",
+          "w": 342,
+          "h": 408
+        }
+      ],
+      "cards": [],
+      "texts": [
+        {
+          "tag": "H2",
+          "text": "SOCIAL",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "H4",
+          "text": "wall",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "X",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "X",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "FACEBOOK",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "FACEBOOK",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "INSTAGRAM",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "INSTAGRAM",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "\"THE MATERIALS FEEL PREMIUM AND THE CRAFTSMANSHIP IS EXCELLENT. I’VE WORN MY SHIRT COUNTLESS TIMES AND IT STILL LOOKS BRAND NEW.\"",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "-@ETHAN_COLE",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "VIEW ON INSTAGRAM",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "VIEW ON INSTAGRAM",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "\"I’VE BEEN SEARCHING FOR EVERYDAY ESSENTIALS THAT DON’T COMPROMISE ON QUALITY, AND I FINALLY FOUND THEM HERE. THE T-SHIRT I BOUGHT IS SIMPLE, BUT THE FABRIC IS INCREDIBLY SOFT AND DURABLE.\"",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "-@ELLAH102",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "VIEW ON FACEBOOK",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "VIEW ON FACEBOOK",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "VIEW ON X",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "VIEW ON X",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "\"EVERY ORDER I’VE RECEIVED HAS BEEN CONSISTENT IN QUALITY. THE ATTENTION TO DETAIL IS WHAT MAKES THESE CLOTHES STAND OUT IN MY WARDROBE.\"",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "-@J.WALKER",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "VIEW ON INSTAGRAM",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "VIEW ON INSTAGRAM",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "\"FROM THE MOMENT I UNPACKED MY ORDER, I COULD TELL THE CRAFTSMANSHIP WAS ON ANOTHER LEVEL. THE HOODIE IS SOFT, WELL-FITTED, AND FEELS BUILT TO LAST. SMALL DETAILS LIKE THE DRAWSTRINGS AND STITCHING REALLY ELEVATE IT. IT’S BECOME A STAPLE IN MY WARDROBE.\"",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "-@CHLOE_BENNETT",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "22.4px",
+          "textTransform": "uppercase"
+        }
+      ]
+    },
+    {
+      "name": "Gift Card",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 900,
+      "padding": "0px",
+      "margin": "0px",
+      "gap": "0px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [
+        {
+          "src": "https://framerusercontent.com/images/fcUv7dMRjP5YP77zc5TUoOIeStQ.webp?width=2997&height=2000",
+          "alt": "A man with voluminous curly hair and a leather jacket at a party",
+          "w": 1440,
+          "h": 961
+        }
+      ],
+      "cards": [],
+      "texts": [
+        {
+          "tag": "H4",
+          "text": "gift card",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H2",
+          "text": "RAWLINE",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "70.4px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-3.52px",
+          "lineHeight": "56.32px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "P",
+          "text": "NOT SURE WHAT TO GRAB? KEEP IT REAL WITH THE RAWLINE GIFT CARD. FROM EXCLUSIVE DROPS TO EVERYDAY FITS, LET THEM CHOOSE THEIR VIBE. IT’S MORE THAN A GIFT, IT’S THEIR PASS INTO THE RAW WORLD.",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "GET NOW",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "GET NOW",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "19.2px",
+          "fontWeight": "400",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "uppercase"
+        }
+      ]
+    },
+    {
+      "name": "Stores",
+      "tag": "SECTION",
+      "w": 1440,
+      "h": 542,
+      "padding": "50px 20px 0px",
+      "margin": "0px",
+      "gap": "0px",
+      "display": "flex",
+      "flexDirection": "column",
+      "background": "rgb(17, 17, 17) none repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [
+        {
+          "src": "https://framerusercontent.com/images/gqJnwudaBfsyzpMDRUVHcuY.webp?width=870&height=800",
+          "alt": "The storefront of a clothing boutique with large stone pillars and a concrete facade",
+          "w": 695,
+          "h": 639
+        },
+        {
+          "src": "https://framerusercontent.com/images/RtzexXET68jVkKH97jdJpyotYOk.webp?width=799&height=800",
+          "alt": "The minimalist, concrete entrance to a modern clothing store",
+          "w": 695,
+          "h": 695
+        }
+      ],
+      "cards": [],
+      "texts": [
+        {
+          "tag": "H4",
+          "text": "walk-in",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "STORES",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(234, 48, 31)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "A",
+          "text": "LONDON\nCanary Wharf\n\nMon - Sun\n\n,\n\n10am - 6pm",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "LONDON",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "H5",
+          "text": "Canary Wharf",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "32px",
+          "fontWeight": "600",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.6px",
+          "lineHeight": "25.6px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "Mon - Sun",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "19.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": ",",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "19.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "10am - 6pm",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "19.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "A",
+          "text": "NEW YORK CITY\nManhattan\n\nMon - Sun\n\n,\n\n10am - 6pm",
+          "fontFamily": "sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "color": "rgb(0, 0, 238)",
+          "letterSpacing": "normal",
+          "lineHeight": "normal",
+          "textTransform": "none"
+        },
+        {
+          "tag": "H4",
+          "text": "NEW YORK CITY",
+          "fontFamily": "\"Azeret Mono\", \"Azeret Mono Placeholder\", sans-serif",
+          "fontSize": "48px",
+          "fontWeight": "700",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-2.4px",
+          "lineHeight": "38.4px",
+          "textTransform": "uppercase"
+        },
+        {
+          "tag": "H5",
+          "text": "Manhattan",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "32px",
+          "fontWeight": "600",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "-1.6px",
+          "lineHeight": "25.6px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "Mon - Sun",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "19.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": ",",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "19.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "none"
+        },
+        {
+          "tag": "P",
+          "text": "10am - 6pm",
+          "fontFamily": "\"Source Serif 4\", \"Source Serif 4 Placeholder\", serif",
+          "fontSize": "19.2px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 227)",
+          "letterSpacing": "normal",
+          "lineHeight": "26.88px",
+          "textTransform": "none"
+        }
+      ]
+    },
+    {
+      "name": "Gradient End",
+      "tag": "DIV",
+      "w": 1440,
+      "h": 60,
+      "padding": "0px",
+      "margin": "0px",
+      "gap": "normal",
+      "display": "block",
+      "flexDirection": "row",
+      "background": "rgba(0, 0, 0, 0) linear-gradient(rgb(17, 17, 17) 0%, rgb(26, 26, 26) 100%) repeat scroll 0% 0% / auto padding-box border-box",
+      "color": "rgb(0, 0, 0)",
+      "fontFamily": "sans-serif",
+      "fontSize": "12px",
+      "border": "0px none rgb(0, 0, 0)",
+      "images": [],
+      "cards": [],
+      "texts": []
+    }
+  ]
+}
