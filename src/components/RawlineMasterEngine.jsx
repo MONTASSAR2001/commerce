@@ -5691,7 +5691,7 @@ export default function RawlineMasterEngine({
       ───────────────────────────────────────────────────────────── */}
       {!(routeState.slug && activeRouteProduct) && (
       <nav
-        className={`kronos-floating-nav fixed ${hasTopNav ? 'top-[78px]' : 'top-5'} left-1/2 -translate-x-1/2 md:left-4 md:translate-x-0 lg:left-6 z-40 w-[95%] md:w-fit md:max-w-[calc(100%-2rem)] h-[80px] bg-[#111111] border border-[#FFFFE3]/25 rounded-2xl flex items-center justify-between gap-2.5 lg:gap-3.5 px-4 lg:px-5 shadow-2xl transition-all duration-500 ease-out ${
+        className={`kronos-floating-nav fixed ${hasTopNav ? 'top-[78px]' : 'top-4 sm:top-5'} left-3 right-3 sm:left-4 sm:right-4 xl:left-6 xl:right-auto xl:w-fit xl:max-w-[calc(100%-3rem)] z-40 h-[64px] sm:h-[76px] xl:h-[80px] bg-[#111111] border border-[#FFFFE3]/25 rounded-2xl flex items-center justify-between gap-2 sm:gap-2.5 xl:gap-3.5 px-3 sm:px-4 xl:px-5 shadow-2xl transition-all duration-500 ease-out ${
           navVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-20'
         }`}
       >
@@ -5705,11 +5705,11 @@ export default function RawlineMasterEngine({
           className="flex items-center group shrink-0"
           title={data?.brand?.name || 'KRONOS'}
         >
-          <KronosLogo className="w-11 h-9 lg:w-12 lg:h-10 transform group-hover:scale-105 transition-transform drop-shadow-lg" />
+          <KronosLogo className="w-10 h-8 sm:w-11 sm:h-9 xl:w-12 xl:h-10 transform group-hover:scale-105 transition-transform drop-shadow-lg shrink-0" />
         </a>
 
-        {/* Center: Navigation Links (hidden on mobile, visible on md+) */}
-        <div className="hidden md:flex items-center gap-3 lg:gap-4 xl:gap-5 font-azeret text-[15px] font-bold tracking-tight whitespace-nowrap shrink-0">
+        {/* Center: Navigation Links (hidden on phones & tablets < xl, visible on xl+ MacBook/PC) */}
+        <div className="hidden xl:flex items-center gap-4 2xl:gap-5 font-azeret text-[15px] font-bold tracking-tight whitespace-nowrap shrink-0">
           {/* Shop Dropdown */}
           <div className="relative">
             <button
@@ -5881,25 +5881,54 @@ export default function RawlineMasterEngine({
           )}
         </div>
 
-        {/* Right: Night/Day Toggle, Language EN|FR|AR, Currency, Search, Wishlist, Cart & Mobile Toggle */}
-        <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
+        {/* Right: Quick Studio Pills (< xl), Night/Day Toggle, Language EN|FR|AR, Currency, Search, Wishlist, Cart & Mobile/Tablet Toggle */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Compact AI Stylist Pill for Phone & Tablet (< xl) */}
+          <button
+            onMouseEnter={prefetchAiChatbot}
+            onClick={() => {
+              setAiChatbotActivated(true);
+              setShowAIChat((v) => !v);
+            }}
+            className="xl:hidden kronos-surface-pill flex items-center gap-1 h-[34px] px-2 sm:px-2.5 rounded-full bg-[#18181D] hover:bg-[#EA301F] text-[#FFFFE3] hover:text-white border border-[#2B2B33] hover:border-[#EA301F] text-[10px] font-mono font-bold uppercase transition-all cursor-pointer shrink-0"
+            title="Open K AI Stylist"
+          >
+            <Sparkles className="w-3.5 h-3.5 shrink-0 text-[#EA301F]" />
+            <span className="hidden sm:inline">AI</span>
+          </button>
+
+          {/* Compact 3D Virtual Lab Pill for Phone & Tablet (< xl) */}
+          <button
+            onMouseEnter={prefetchFittingLab}
+            onClick={() => handleOpenFittingLab(null)}
+            className="xl:hidden kronos-accent-btn flex items-center gap-1.5 h-[34px] sm:h-[36px] px-2.5 sm:px-3 rounded-xl bg-[#EA301F]/25 hover:bg-[#EA301F] text-[#FF4D3D] hover:text-white border border-[#EA301F]/70 text-[10px] font-mono font-black uppercase transition-all cursor-pointer shrink-0"
+            title="Launch 3D Virtual Try-On Studio"
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0 stroke-current fill-none" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2.5 L20.5 7.25 L20.5 16.75 L12 21.5 L3.5 16.75 L3.5 7.25 Z" />
+              <path d="M12 21.5 L12 12 M12 12 L20.5 7.25 M12 12 L3.5 7.25" />
+            </svg>
+            <span className="sm:hidden">3D</span>
+            <span className="hidden sm:inline">{t('nav.lab3d')}</span>
+          </button>
+
           {/* Night / Day Mode Pill */}
           <button
             type="button"
             onClick={() => setThemeMode((prev) => (prev === 'night' ? 'day' : 'night'))}
-            className="kronos-surface-pill flex items-center gap-1 h-[34px] px-2.5 rounded-full bg-[#18181D] hover:bg-[#23232A] border border-[#2B2B33] hover:border-[#EA301F] text-[10px] font-mono font-bold text-[#FFFFE3] transition-all cursor-pointer shadow-sm shrink-0"
+            className="kronos-surface-pill flex items-center gap-1 h-[34px] px-2 sm:px-2.5 rounded-full bg-[#18181D] hover:bg-[#23232A] border border-[#2B2B33] hover:border-[#EA301F] text-[10px] font-mono font-bold text-[#FFFFE3] transition-all cursor-pointer shadow-sm shrink-0"
             title={themeMode === 'night' ? 'Switch to Editorial Day Mode' : 'Switch to Midnight Night Mode'}
           >
             {themeMode === 'night' ? (
-              <Moon className="w-3.5 h-3.5 text-[#E5A93C]" />
+              <Moon className="w-3.5 h-3.5 shrink-0 text-[#E5A93C]" />
             ) : (
-              <Sun className="w-3.5 h-3.5 text-[#EA301F]" />
+              <Sun className="w-3.5 h-3.5 shrink-0 text-[#EA301F]" />
             )}
-            <span className="hidden xl:inline">{themeMode === 'night' ? t('nav.nightMode') : t('nav.dayMode')}</span>
+            <span className="hidden 2xl:inline">{themeMode === 'night' ? t('nav.nightMode') : t('nav.dayMode')}</span>
           </button>
 
           {/* Language Selector (EN | FR | AR) */}
-          <div className="kronos-surface-pill hidden sm:flex items-center bg-[#18181D] border border-[#2B2B33] rounded-full p-0.5 shrink-0">
+          <div className="kronos-surface-pill hidden md:flex items-center bg-[#18181D] border border-[#2B2B33] rounded-full p-0.5 shrink-0">
             {SUPPORTED_LANGUAGES.map((lng) => (
               <button
                 key={lng.code}
@@ -5920,32 +5949,32 @@ export default function RawlineMasterEngine({
           {/* Currency Pill */}
           <button
             onClick={() => setShowCountryModal(true)}
-            className="kronos-surface-pill hidden sm:flex items-center gap-1 h-[34px] px-2.5 rounded-full bg-[#18181D] hover:bg-[#23232A] border border-[#2B2B33] hover:border-[#EA301F] text-[11px] font-mono font-bold text-[#FFFFE3] transition-all cursor-pointer shadow-sm whitespace-nowrap shrink-0"
+            className="kronos-surface-pill hidden md:flex items-center gap-1 h-[34px] px-2.5 rounded-full bg-[#18181D] hover:bg-[#23232A] border border-[#2B2B33] hover:border-[#EA301F] text-[11px] font-mono font-bold text-[#FFFFE3] transition-all cursor-pointer shadow-sm whitespace-nowrap shrink-0"
             title="Current Currency (Click to change)"
           >
             <span>{currentCurrency.flag}</span>
             <span>{currentCurrency.code} ({currentCurrency.symbol})</span>
           </button>
 
-          {/* Search Icon (hidden on mobile, visible on md+) */}
+          {/* Search Icon */}
           <button
             onClick={() => setShowSearchModal(true)}
-            className="hidden md:block text-[#FFFFE3] hover:text-[#EA301F] transition-transform hover:scale-110 p-1 shrink-0"
+            className="hidden sm:flex text-[#FFFFE3] hover:text-[#EA301F] transition-transform hover:scale-110 p-1 shrink-0 cursor-pointer"
             title="Search Products"
           >
-            <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-current stroke-[2.4] fill-none">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 stroke-current stroke-[2.4] fill-none">
               <circle cx="10.5" cy="10.5" r="7" />
               <path d="M 15.5 15.5 L 21 21" strokeLinecap="round" />
             </svg>
           </button>
 
-          {/* Wishlist Heart Icon (hidden on mobile, visible on md+) */}
+          {/* Wishlist Heart Icon */}
           <button
             onClick={() => setShowWishlistDrawer(true)}
-            className="hidden md:block text-[#FFFFE3] hover:text-[#EA301F] relative transition-transform hover:scale-110 p-1 shrink-0"
+            className="hidden sm:flex text-[#FFFFE3] hover:text-[#EA301F] relative transition-transform hover:scale-110 p-1 shrink-0 cursor-pointer"
             title="Wishlist"
           >
-            <svg viewBox="0 0 24 24" className="w-6 h-6">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6 shrink-0">
               <path
                 d="M 10.534 17.956 L 1.734 9.656 C 0.133 8.129 -0.418 5.801 0.328 3.717 C 1.074 1.634 2.977 0.185 5.184 0.02 C 7.391 -0.144 9.488 1.006 10.534 2.956 C 11.572 1.019 13.646 -0.132 15.839 0.012 C 18.031 0.156 19.937 1.57 20.711 3.626 C 21.486 5.682 20.987 8.001 19.434 9.556 Z"
                 transform="translate(1.466 3.044)"
@@ -5957,11 +5986,11 @@ export default function RawlineMasterEngine({
           </button>
 
           {/* Cart Icon + Pic 1 Badge */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             {cartCount > 0 && (
               <span
                 onClick={() => setShowCartDrawer(true)}
-                className="bg-[#EA301F] text-white text-xs font-black font-mono px-2 py-0.5 rounded-full min-w-[22px] h-[22px] flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform"
+                className="bg-[#EA301F] text-white text-xs font-black font-mono px-2 py-0.5 rounded-full min-w-[22px] h-[22px] flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform shrink-0"
                 title={`${cartCount} items in bag`}
               >
                 {cartCount}
@@ -5969,10 +5998,10 @@ export default function RawlineMasterEngine({
             )}
             <button
               onClick={() => setShowCartDrawer(true)}
-              className="text-[#FFFFE3] hover:text-[#EA301F] relative transition-transform hover:scale-110 p-1 shrink-0"
+              className="text-[#FFFFE3] hover:text-[#EA301F] relative transition-transform hover:scale-110 p-1 shrink-0 cursor-pointer"
               title="Shopping Bag"
             >
-              <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+              <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 fill-current">
                 <path
                   d="M 14.55 11 C 15.3 11 15.96 10.59 16.3 9.97 L 19.88 3.48 C 20.25 2.82 19.77 2 19.01 2 L 4.21 2 L 3.27 0 L 0 0 L 0 2 L 2 2 L 5.6 9.59 L 4.25 12.03 C 3.52 13.37 4.48 15 6 15 L 18 15 L 18 13 L 6 13 L 7.1 11 Z M 5.16 4 L 17.31 4 L 14.55 9 L 7.53 9 Z M 6 16 C 4.9 16 4.01 16.9 4.01 18 C 4.01 19.1 4.9 20 6 20 C 7.1 20 8 19.1 8 18 C 8 16.9 7.1 16 6 16 Z M 16 16 C 14.9 16 14.01 16.9 14.01 18 C 14.01 19.1 14.9 20 16 20 C 17.1 20 18 19.1 18 18 C 18 16.9 17.1 16 16 16 Z"
                   transform="translate(1.996 2)"
@@ -5981,18 +6010,18 @@ export default function RawlineMasterEngine({
             </button>
           </div>
 
-          {/* Mobile Hamburger Toggle Button (Exact Framer mobile = icon) */}
+          {/* Mobile & Tablet Hamburger Toggle Button (< xl) */}
           <button
             onClick={() => setMobileMenuOpen(v => !v)}
-            className="md:hidden text-[#FFFFE3] hover:text-[#EA301F] p-1.5 flex items-center justify-center transition-colors ml-0.5"
+            className="xl:hidden text-[#FFFFE3] hover:text-[#EA301F] p-1 flex items-center justify-center transition-colors ml-0.5 shrink-0 cursor-pointer"
             title="Toggle Menu"
           >
             {mobileMenuOpen ? (
-              <svg viewBox="0 0 24 24" className="w-7 h-7 stroke-current stroke-2 fill-none">
+              <svg viewBox="0 0 24 24" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 stroke-current stroke-2 fill-none">
                 <path d="M 6 6 L 18 18 M 6 18 L 18 6" strokeLinecap="round" />
               </svg>
             ) : (
-              <svg viewBox="0 0 24 24" className="w-7 h-7 stroke-current stroke-2 fill-none">
+              <svg viewBox="0 0 24 24" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 stroke-current stroke-2 fill-none">
                 <path d="M 4 8 L 20 8 M 4 16 L 20 16" strokeLinecap="round" />
               </svg>
             )}
@@ -6001,10 +6030,10 @@ export default function RawlineMasterEngine({
       </nav>
       )}
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile & Tablet Drawer Menu (< xl) */}
       {!(routeState.slug && activeRouteProduct) && mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-[#111111] backdrop-blur-2xl flex flex-col pt-28 px-6 pb-12 overflow-y-auto animate-in fade-in duration-200 md:hidden">
-          <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-[#FFFFE3]/15">
+        <div className="fixed inset-0 z-40 bg-[#111111] backdrop-blur-2xl flex flex-col pt-24 sm:pt-28 px-5 sm:px-8 pb-12 overflow-y-auto animate-in fade-in duration-200 xl:hidden">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 mb-4 border-b border-[#FFFFE3]/15">
             <div className="flex items-center gap-1.5 bg-[#18181D] border border-[#2B2B33] rounded-full p-1">
               {SUPPORTED_LANGUAGES.map((lng) => (
                 <button
@@ -6019,13 +6048,49 @@ export default function RawlineMasterEngine({
                 </button>
               ))}
             </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setShowCountryModal(true);
+                }}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#18181D] border border-[#2B2B33] text-xs font-mono font-bold text-[#FFFFE3] cursor-pointer"
+              >
+                <span>{currentCurrency.flag}</span>
+                <span>{currentCurrency.code} ({currentCurrency.symbol})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setThemeMode((prev) => (prev === 'night' ? 'day' : 'night'))}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#18181D] border border-[#2B2B33] text-xs font-mono font-bold text-[#FFFFE3] cursor-pointer"
+              >
+                {themeMode === 'night' ? <Moon className="w-3.5 h-3.5 shrink-0 text-[#E5A93C]" /> : <Sun className="w-3.5 h-3.5 shrink-0 text-[#EA301F]" />}
+                <span>{themeMode === 'night' ? t('nav.nightMode') : t('nav.dayMode')}</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5 mb-5">
             <button
               type="button"
-              onClick={() => setThemeMode((prev) => (prev === 'night' ? 'day' : 'night'))}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#18181D] border border-[#2B2B33] text-xs font-mono font-bold text-[#FFFFE3]"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setShowSearchModal(true);
+              }}
+              className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#18181D] border border-[#2B2B33] text-xs font-mono font-bold uppercase text-[#FFFFE3] cursor-pointer"
             >
-              {themeMode === 'night' ? <Moon className="w-3.5 h-3.5 text-[#E5A93C]" /> : <Sun className="w-3.5 h-3.5 text-[#EA301F]" />}
-              <span>{themeMode === 'night' ? t('nav.nightMode') : t('nav.dayMode')}</span>
+              <span>🔍 {t('product.search')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setShowWishlistDrawer(true);
+              }}
+              className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#18181D] border border-[#2B2B33] text-xs font-mono font-bold uppercase text-[#FFFFE3] cursor-pointer"
+            >
+              <span>❤️ {t('product.saved')} ({wishlist.length})</span>
             </button>
           </div>
           <div className="flex flex-col space-y-6 font-azeret text-2xl uppercase font-bold text-[#FFFFE3]">
@@ -6290,7 +6355,7 @@ export default function RawlineMasterEngine({
       <section
         ref={aboutRef}
         id="about"
-        className="hero-photo-preserve w-full h-screen min-h-[850px] relative flex items-center justify-center bg-[#111111] overflow-hidden px-4"
+        className="hero-photo-preserve w-full h-screen min-h-[560px] sm:min-h-[720px] lg:min-h-[850px] relative flex items-center justify-center bg-[#111111] overflow-hidden px-4"
       >
         {/* Background Image with Smooth CSS GPU Scroll Scale Effect */}
         <div
@@ -6338,16 +6403,16 @@ export default function RawlineMasterEngine({
       ───────────────────────────────────────────────────────────── */}
       <section id="drops" className="w-full max-w-[1400px] mx-auto py-20 px-4 sm:px-6 bg-[#111111]">
         {/* Header */}
-        <div className="flex items-center justify-between pb-6 mb-8 border-b border-[#222]">
-          <div className="flex items-baseline gap-3">
-            <span className="font-serif-italic font-bold text-4xl lg:text-[48px] tracking-[-2.4px] text-[#FFFFE3]">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-6 mb-8 border-b border-[#222]">
+          <div className="flex items-baseline gap-2.5 sm:gap-3 flex-wrap">
+            <span className="font-serif-italic font-bold text-3xl sm:text-4xl lg:text-[48px] tracking-tight lg:tracking-[-2.4px] text-[#FFFFE3]">
               {language === 'en' ? (data?.drops?.titlePrefix || t('sections.dropsPrefix')) : t('sections.dropsPrefix')}
             </span>
-            <span className="font-azeret font-bold text-4xl lg:text-[48px] tracking-[-2.4px] uppercase text-[#EA301F]">
+            <span className="font-azeret font-bold text-3xl sm:text-4xl lg:text-[48px] tracking-tight lg:tracking-[-2.4px] uppercase text-[#EA301F]">
               {language === 'en' ? (data?.drops?.titleSuffix || t('sections.dropsSuffix')) : t('sections.dropsSuffix')}
             </span>
           </div>
-          <a href="#sale" className="font-azeret font-bold text-2xl lg:text-[32px] tracking-[-1.6px] text-[#FFFFE3] hover:text-[#EA301F] transition-colors flex items-center gap-2">
+          <a href="#sale" className="font-azeret font-bold text-xl sm:text-2xl lg:text-[32px] tracking-tight lg:tracking-[-1.6px] text-[#FFFFE3] hover:text-[#EA301F] transition-colors flex items-center gap-2 shrink-0">
             <span>{language === 'en' ? (data?.drops?.ctaText || t('sections.viewAll')) : t('sections.viewAll')}</span>
             <span>↗</span>
           </a>
@@ -6685,11 +6750,11 @@ export default function RawlineMasterEngine({
         return (
           <section id="categories" className="w-full max-w-[1400px] mx-auto py-20 px-4 sm:px-6 bg-[#111111]">
             {/* Header */}
-            <div className="flex items-center justify-between pb-6 mb-8 border-b border-[#222]">
-              <h2 className="font-azeret font-bold text-4xl lg:text-[48px] tracking-[-2.4px] text-[#EA301F] uppercase">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-6 mb-8 border-b border-[#222]">
+              <h2 className="font-azeret font-bold text-3xl sm:text-4xl lg:text-[48px] tracking-tight lg:tracking-[-2.4px] text-[#EA301F] uppercase">
                 {language === 'en' ? (data?.categoriesSection?.title || t('sections.categoriesTitle')) : t('sections.categoriesTitle')}
               </h2>
-              <a href="#sale" className="font-azeret font-bold text-2xl lg:text-[32px] tracking-[-1.6px] text-[#FFFFE3] hover:text-[#EA301F] transition-colors flex items-center gap-2">
+              <a href="#sale" className="font-azeret font-bold text-xl sm:text-2xl lg:text-[32px] tracking-tight lg:tracking-[-1.6px] text-[#FFFFE3] hover:text-[#EA301F] transition-colors flex items-center gap-2 shrink-0">
                 <span>{language === 'en' ? (data?.categoriesSection?.ctaText || t('sections.categoriesCta')) : t('sections.categoriesCta')}</span>
                 <span>↗</span>
               </a>
@@ -6766,7 +6831,7 @@ export default function RawlineMasterEngine({
           Actual video of guy with dreads in blue night lighting!
           Superimposed "Rawline" + "clothing"
       ───────────────────────────────────────────────────────────── */}
-      <section className="hero-photo-preserve w-full h-screen min-h-[850px] relative flex items-center justify-center bg-[#111111] overflow-hidden p-5">
+      <section className="hero-photo-preserve w-full h-screen min-h-[560px] sm:min-h-[720px] lg:min-h-[850px] relative flex items-center justify-center bg-[#111111] overflow-hidden p-4 sm:p-5">
         <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
           {/* Authentic Video Element (lazy preload="none" so initial Hero & catalog images stay instant) */}
           <video
@@ -6811,45 +6876,45 @@ export default function RawlineMasterEngine({
       <section id="new-arrivals" className="w-full max-w-[1400px] mx-auto py-20 px-4 sm:px-6 bg-[#111111]">
         {/* Header with MEN / WOMEN pills */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 mb-8 border-b border-[#222] gap-4">
-          <div className="flex items-center gap-8">
-            <div className="flex items-baseline gap-3">
-              <span className="font-serif-italic font-bold text-4xl lg:text-[48px] tracking-[-2.4px] text-[#FFFFE3]">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-8">
+            <div className="flex items-baseline gap-2.5 sm:gap-3">
+              <span className="font-serif-italic font-bold text-3xl sm:text-4xl lg:text-[48px] tracking-tight lg:tracking-[-2.4px] text-[#FFFFE3]">
                 {language === 'en' ? (data?.sectionHeaders?.newArrivals?.prefix || t('sections.newPrefix')) : t('sections.newPrefix')}
               </span>
-              <span className="font-azeret font-bold text-4xl lg:text-[48px] tracking-[-2.4px] uppercase text-[#EA301F]">
+              <span className="font-azeret font-bold text-3xl sm:text-4xl lg:text-[48px] tracking-tight lg:tracking-[-2.4px] uppercase text-[#EA301F]">
                 {language === 'en' ? (data?.sectionHeaders?.newArrivals?.suffix || t('sections.newSuffix')) : t('sections.newSuffix')}
               </span>
             </div>
 
             {/* Exact Framer Square Checkbox Filter Pills */}
-            <div className="flex items-center gap-6 font-azeret text-[12.8px] font-medium tracking-tight">
+            <div className="flex items-center gap-4 sm:gap-6 font-azeret text-[12.8px] font-medium tracking-tight">
               <button
                 onClick={() => setActiveNewArrivalsTab('MEN')}
-                className="flex items-center gap-2 cursor-pointer group"
+                className="flex items-center gap-2 cursor-pointer group shrink-0"
               >
-                <div className={`w-5 h-5 flex items-center justify-center transition-colors ${
+                <div className={`w-5 h-5 flex items-center justify-center transition-colors shrink-0 ${
                   activeNewArrivalsTab === 'MEN' ? 'bg-[#EA301F] text-white' : 'border border-[#FFFFE3]/40'
                 }`}>
-                  {activeNewArrivalsTab === 'MEN' && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                  {activeNewArrivalsTab === 'MEN' && <Check className="w-3.5 h-3.5 stroke-[3] shrink-0" />}
                 </div>
                 <span className="text-[#FFFFE3] group-hover:text-[#EA301F] transition-colors">{t('filters.man')}</span>
               </button>
 
               <button
                 onClick={() => setActiveNewArrivalsTab('WOMEN')}
-                className="flex items-center gap-2 cursor-pointer group"
+                className="flex items-center gap-2 cursor-pointer group shrink-0"
               >
-                <div className={`w-5 h-5 flex items-center justify-center transition-colors ${
+                <div className={`w-5 h-5 flex items-center justify-center transition-colors shrink-0 ${
                   activeNewArrivalsTab === 'WOMEN' ? 'bg-[#EA301F] text-white' : 'border border-[#FFFFE3]/40'
                 }`}>
-                  {activeNewArrivalsTab === 'WOMEN' && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                  {activeNewArrivalsTab === 'WOMEN' && <Check className="w-3.5 h-3.5 stroke-[3] shrink-0" />}
                 </div>
                 <span className="text-[#FFFFE3] group-hover:text-[#EA301F] transition-colors">{t('filters.woman')}</span>
               </button>
             </div>
           </div>
 
-          <a href="#sale" className="font-azeret font-bold text-2xl lg:text-[32px] tracking-[-1.6px] text-[#FFFFE3] hover:text-[#EA301F] transition-colors flex items-center gap-2">
+          <a href="#sale" className="font-azeret font-bold text-xl sm:text-2xl lg:text-[32px] tracking-tight lg:tracking-[-1.6px] text-[#FFFFE3] hover:text-[#EA301F] transition-colors flex items-center gap-2 shrink-0">
             <span>{t('sections.viewAll')}</span>
             <span>↗</span>
           </a>
@@ -6890,7 +6955,7 @@ export default function RawlineMasterEngine({
             </h4>
           </div>
 
-          <div className="flex items-center gap-8 font-azeret text-base uppercase">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-8 font-azeret text-sm sm:text-base uppercase">
             {(data?.footer?.socials || [
               { name: 'X', url: 'https://x.com' },
               { name: 'Facebook', url: 'https://facebook.com' },
@@ -6978,7 +7043,7 @@ export default function RawlineMasterEngine({
       ───────────────────────────────────────────────────────────── */}
       <section
         ref={giftRef}
-        className="hero-photo-preserve w-full h-screen min-h-[850px] relative flex items-center justify-center bg-[#111111] overflow-hidden px-4"
+        className="hero-photo-preserve w-full h-screen min-h-[560px] sm:min-h-[720px] lg:min-h-[850px] relative flex items-center justify-center bg-[#111111] overflow-hidden px-4"
       >
         {/* Background Image with Smooth CSS GPU Scroll Scale Animation */}
         <div
@@ -7168,8 +7233,8 @@ export default function RawlineMasterEngine({
               <a href="#categories" className="text-[#FFFFE3] hover:text-[#EA301F] transition-colors">{t('footer.navCategories')}</a>
             </div>
 
-            <div className="mt-8 flex items-center justify-between">
-              <div className="flex items-center gap-6 font-azeret text-xs uppercase text-[#8E8E93]">
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-azeret text-xs uppercase text-[#8E8E93]">
                 {(data?.footer?.socials || [
                   { name: 'X', url: 'https://x.com' },
                   { name: 'Facebook', url: 'https://facebook.com' },
@@ -7190,11 +7255,11 @@ export default function RawlineMasterEngine({
               {/* Currency Selector Pill */}
               <button
                 onClick={() => setShowCountryModal(true)}
-                className="flex items-center gap-2 border border-[#FFFFE3]/30 px-3 py-1.5 rounded-full font-azeret text-xs uppercase text-[#FFFFE3] hover:border-[#EA301F] transition-colors cursor-pointer"
+                className="flex items-center gap-2 border border-[#FFFFE3]/30 px-3 py-1.5 rounded-full font-azeret text-xs uppercase text-[#FFFFE3] hover:border-[#EA301F] transition-colors cursor-pointer shrink-0 whitespace-nowrap"
               >
                 <span>{currentCurrency.flag}</span>
                 <span dir="ltr">{currentCurrency.code} ({currentCurrency.symbol})</span>
-                <ChevronDown className="w-3 h-3" />
+                <ChevronDown className="w-3 h-3 shrink-0" />
               </button>
             </div>
           </div>

@@ -1438,36 +1438,36 @@ export default function Rawline3DFittingLab({
   return (
     <div className="fixed inset-0 z-[100] bg-[#0B0B10] flex flex-col font-sans text-white overflow-hidden antialiased select-none">
       {/* ── CLEAN KRONOS 3D VIRTUAL TRY-ON HEADER ── */}
-      <header className="h-16 px-4 sm:px-8 border-b border-white/10 bg-[#0D0D13] flex items-center justify-between shrink-0 z-30">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#EA301F] flex items-center justify-center font-azeret font-black text-xs text-white shadow-lg shadow-[#EA301F]/30">
+      <header className="h-14 sm:h-16 px-3 sm:px-6 lg:px-8 border-b border-white/10 bg-[#0D0D13] flex items-center justify-between gap-2 shrink-0 z-30">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#EA301F] flex items-center justify-center font-azeret font-black text-xs text-white shadow-lg shadow-[#EA301F]/30 shrink-0">
             3D
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="font-azeret font-bold text-xs sm:text-sm tracking-wider uppercase text-white">
-                KRONOS • 3D VIRTUAL TRY-ON LAB
+              <h1 className="font-azeret font-bold text-[11px] sm:text-sm tracking-wider uppercase text-white truncate">
+                KRONOS • 3D LAB
               </h1>
               <span
-                className={`hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono border ${
+                className={`hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono border shrink-0 ${
                   webglUnavailable
                     ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
                     : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                 }`}
               >
-                <Sparkles className="w-2.5 h-2.5" />
+                <Sparkles className="w-2.5 h-2.5 shrink-0" />
                 {webglUnavailable ? 'REAL 3D AVATAR · SOFTWARE GL' : 'REAL 3D WEBGL AVATAR'}
               </span>
             </div>
-            <p className="text-[11px] text-[#8E8E98] hidden sm:block">
+            <p className="text-[11px] text-[#8E8E98] hidden sm:block truncate">
               {selectedGender === 'male' ? 'Man 3D Model (184 cm)' : 'Woman 3D Model (175 cm)'} • Drag 360° to Inspect Every Angle
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Quick MAN / WOMAN Top Bar Switcher */}
-          <div className="hidden sm:flex items-center bg-black/50 border border-white/10 rounded-xl p-1">
+          <div className="hidden sm:flex items-center bg-black/50 border border-white/10 rounded-xl p-1 shrink-0">
             <button
               onClick={() => handleChooseGenderModel('male')}
               className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer ${
@@ -1488,40 +1488,41 @@ export default function Rawline3DFittingLab({
 
           <button
             onClick={() => setShowWardrobeDrawer((v) => !v)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer shrink-0 ${
               showWardrobeDrawer
                 ? 'bg-[#EA301F] border-[#EA301F] text-white'
                 : 'bg-white/5 hover:bg-white/10 text-[#D1D1DB] border-white/10'
             }`}
+            title={`All Outfits (${genderProducts.length})`}
           >
-            <Tag className="w-3.5 h-3.5" />
+            <Tag className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">All Outfits ({genderProducts.length})</span>
           </button>
 
           <button
             onClick={handleSnapshot}
-            className="p-2 sm:px-3 sm:py-2 bg-white/5 hover:bg-white/10 text-[#D1D1DB] hover:text-white rounded-xl border border-white/10 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+            className="p-2 sm:px-3 sm:py-2 bg-white/5 hover:bg-white/10 text-[#D1D1DB] hover:text-white rounded-xl border border-white/10 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
             title="Save 3D Lookbook Snapshot"
           >
-            <Camera className="w-4 h-4 text-[#EA301F]" />
+            <Camera className="w-4 h-4 shrink-0 text-[#EA301F]" />
             <span className="hidden md:inline">{snapshotTaken ? 'Saved ✓' : 'Snapshot'}</span>
           </button>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-white/5 hover:bg-[#EA301F] text-[#8E8E98] hover:text-white border border-white/10 transition-all cursor-pointer"
+            className="p-2 rounded-xl bg-white/5 hover:bg-[#EA301F] text-[#8E8E98] hover:text-white border border-white/10 transition-all cursor-pointer shrink-0"
             title="Close 3D Lab"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 shrink-0" />
           </button>
         </div>
       </header>
 
       {/* ── MAIN WORKSPACE ── */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative">
         {/* ── LEFT / CENTER: REAL 3D WEBGL HUMAN VIEWPORT ── */}
         <div
-          className="flex-1 relative overflow-hidden min-h-[460px]"
+          className="relative overflow-hidden h-[52vh] min-h-[300px] sm:min-h-[400px] lg:h-auto lg:flex-1 lg:min-h-[460px] shrink-0 lg:shrink"
           style={{ backgroundColor: currentLighting.bgCss }}
         >
           {/* Three.js Canvas Mount */}
@@ -1539,7 +1540,7 @@ export default function Rawline3DFittingLab({
               />
 
               {/* Compact Non-Blocking Top Status Pill + Optional Diagnostics Popover */}
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+              <div className="absolute top-14 sm:top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
                 <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md border border-white/15 rounded-full px-3 py-1.5 shadow-lg text-[10px] font-mono text-white">
                   <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
                   <span className="hidden sm:inline text-white/90">3D Software GL · GPU Paused</span>
@@ -1561,13 +1562,13 @@ export default function Rawline3DFittingLab({
                     }}
                     className="px-2 py-0.5 rounded-full bg-[#EA301F] hover:bg-[#FF3B28] text-white font-bold transition-colors cursor-pointer flex items-center gap-1"
                   >
-                    <RotateCw className="w-2.5 h-2.5" />
+                    <RotateCw className="w-2.5 h-2.5 shrink-0" />
                     <span>Retry 3D</span>
                   </button>
                 </div>
 
                 {showWebglDetails && (
-                  <div className="mt-2 w-[320px] sm:w-[360px] rounded-2xl border border-white/15 bg-[#12121A]/95 p-3.5 shadow-2xl text-[11px] text-[#B4B4BF] leading-relaxed space-y-1.5 backdrop-blur-md">
+                  <div className="mt-2 w-[calc(100vw-2rem)] max-w-[360px] rounded-2xl border border-white/15 bg-[#12121A]/95 p-3.5 shadow-2xl text-[11px] text-[#B4B4BF] leading-relaxed space-y-1.5 backdrop-blur-md">
                     <p>
                       <strong className="text-white">Browser GPU WebGL2 paused:</strong>{' '}
                       {webglFailReason || 'Browser returned null for WebGL2'}.
@@ -1744,7 +1745,7 @@ export default function Rawline3DFittingLab({
         </div>
 
         {/* ── RIGHT SIDEBAR: MODEL + OUTFIT BUILDER + TAILORING CONTROLS ── */}
-        <div className="w-full lg:w-[460px] xl:w-[480px] bg-[#0B0B11] border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col shrink-0 overflow-y-auto">
+        <div className="w-full lg:w-[430px] xl:w-[480px] bg-[#0B0B11] border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col shrink-0 lg:overflow-y-auto">
           {/* Active Focused Piece Banner */}
           {activeProduct && (
             <div className="p-4 sm:p-5 border-b border-white/10 bg-[#111119] flex items-center gap-4">

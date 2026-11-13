@@ -540,18 +540,20 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
         </div>
       )}
 
-      {/* Mobile Backdrop */}
+      {/* Mobile & Tablet Backdrop */}
       {mobileNavOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 md:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 lg:hidden"
           onClick={() => setMobileNavOpen(false)}
         />
       )}
 
-      {/* ── DESKTOP & MOBILE SIDEBAR (Pic 1 Match) ── */}
+      {/* ── DESKTOP & MOBILE SIDEBAR (Persistent on lg+ 1024px, slide-over drawer below) ── */}
       <aside
-        className={`fixed inset-y-0 left-0 w-64 bg-[#fdfbf9] border-r-[1.5px] border-[#171717] flex flex-col z-50 transition-transform duration-300 md:translate-x-0 ${
-          mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 w-64 bg-[#fdfbf9] border-r-[1.5px] border-[#171717] flex flex-col z-50 transition-transform duration-300 lg:translate-x-0 lg:pointer-events-auto lg:visible ${
+          mobileNavOpen
+            ? 'translate-x-0 pointer-events-auto visible'
+            : '-translate-x-full pointer-events-none invisible'
         }`}
       >
         {/* Brand Header */}
@@ -560,7 +562,7 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
             onClick={() => onNavigateStore('/')}
             className="flex items-center gap-2.5 group cursor-pointer text-left"
           >
-            <KronosBrandMarkIcon className="w-8 h-8" />
+            <KronosBrandMarkIcon className="w-8 h-8 shrink-0" />
             <div className="leading-tight">
               <span className="font-gelica font-bold text-xl text-[#2b1a07] tracking-tight group-hover:text-[#ff6f1e] transition-colors">
                 {brandName}
@@ -572,9 +574,10 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
           </button>
           <button
             onClick={() => setMobileNavOpen(false)}
-            className="md:hidden p-1.5 rounded-[8px] border border-[#171717]"
+            className="lg:hidden p-1.5 rounded-[8px] border border-[#171717] cursor-pointer"
+            aria-label="Close navigation drawer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 shrink-0" />
           </button>
         </div>
 
@@ -703,26 +706,41 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
       </aside>
 
       {/* ── MAIN CONTENT AREA ── */}
-      <main className="w-full min-w-0 md:ml-64 md:w-[calc(100%-16rem)] flex flex-col min-h-screen bg-[#fdfbf9]">
-        {/* Mobile Header */}
-        <header className="md:hidden h-14 bg-[#fdfbf9] border-b-[1.5px] border-[#171717] flex items-center justify-between px-4 sticky top-0 z-30">
+      <main className="w-full min-w-0 lg:ml-64 lg:w-[calc(100%-16rem)] flex flex-col min-h-screen bg-[#fdfbf9]">
+        {/* Mobile & Tablet Header (< lg 1024px) */}
+        <header className="lg:hidden min-h-14 py-2 bg-[#fdfbf9] border-b-[1.5px] border-[#171717] flex items-center justify-between gap-2 px-3 sm:px-5 sticky top-0 z-30">
           <button
             onClick={() => setMobileNavOpen(true)}
-            className="p-2 rounded-[10px] border-[1.5px] border-[#171717] bg-white"
+            className="p-2 rounded-[10px] border-[1.5px] border-[#171717] bg-white shrink-0 cursor-pointer"
+            aria-label="Open navigation menu"
           >
-            <Menu className="w-4 h-4" />
+            <Menu className="w-4 h-4 shrink-0" />
           </button>
-          <span className="font-gelica font-bold text-base">{brandName} admin</span>
-          <button
-            onClick={() => onNavigateStore('/')}
-            className="superr-pill-btn py-1 px-3 text-[11px]"
-          >
-            ◂ store
-          </button>
+          <span className="font-gelica font-bold text-sm sm:text-base truncate">{brandName} admin</span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {!sessionUser && isSupabaseConfigured() && (
+              <button
+                onClick={() => {
+                  setAuthModalMode('signin');
+                  setAuthReason('Sign in with montassarzarai0@gmail.com to save directly to Supabase.');
+                  setAuthModalOpen(true);
+                }}
+                className="px-2.5 py-1 rounded-[16px] border-[1.5px] border-[#171717] bg-[#ff6f1e] text-white text-[11px] font-bold cursor-pointer shrink-0"
+              >
+                sign in
+              </button>
+            )}
+            <button
+              onClick={() => onNavigateStore('/')}
+              className="superr-pill-btn py-1 px-2.5 sm:px-3 text-[11px] shrink-0"
+            >
+              ◂ store
+            </button>
+          </div>
         </header>
 
-        {/* Desktop Sticky Top Header (Matches Pic 1) */}
-        <header className="hidden md:flex h-16 bg-[#fdfbf9] border-b-[1.5px] border-[#171717] items-center justify-between px-8 sticky top-0 z-30">
+        {/* Desktop Sticky Top Header (lg+ 1024px) */}
+        <header className="hidden lg:flex min-h-16 py-2 bg-[#fdfbf9] border-b-[1.5px] border-[#171717] items-center justify-between gap-3 px-6 xl:px-8 sticky top-0 z-30">
           <div className="min-w-0 truncate">
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-gelica font-bold text-[#2b1a07] lowercase truncate">
@@ -1092,13 +1110,13 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
           </section>
 
           {/* 3. BOTTOM INTERACTIVE MASTER DOCK CARD (Matches Pic 1 Bottom Section) */}
-          <section className="superr-card p-5 sm:p-6 space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-[1.5px] border-[#171717]">
-              <div className="flex items-start gap-3">
+          <section className="superr-card p-4 sm:p-6 space-y-5">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-4 border-b-[1.5px] border-[#171717]">
+              <div className="flex items-start gap-3 min-w-0">
                 <div className="w-9 h-9 rounded-[10px] border-[1.5px] border-[#171717] bg-[#ff6f1e] flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#171717]">
-                  <LayoutGrid className="w-4 h-4 text-white" />
+                  <LayoutGrid className="w-4 h-4 shrink-0 text-white" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-gelica font-bold text-lg text-[#2b1a07] lowercase leading-tight">
                     {navItems.find((n) => n.id === activeTab)?.label} dock
                   </h3>
@@ -1109,7 +1127,7 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => onNavigateStore('/')}
                   className="superr-pill-btn py-1.5 px-3 text-xs"

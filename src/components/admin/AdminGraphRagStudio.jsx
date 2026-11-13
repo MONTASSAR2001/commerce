@@ -1024,7 +1024,7 @@ export default function AdminGraphRagStudio({
           </div>
 
           {/* Right 5 Cols: Multi-Hop Reasoning Inspector + Live Graph RAG Verification */}
-          <div className="lg:col-span-5 rounded-[24px] border-[1.5px] border-[#171717] bg-[#fdfbf9] shadow-[4px_4px_0px_#171717] flex flex-col h-[720px] overflow-hidden">
+          <div className="lg:col-span-5 rounded-[24px] border-[1.5px] border-[#171717] bg-[#fdfbf9] shadow-[4px_4px_0px_#171717] flex flex-col h-[520px] sm:h-[640px] lg:h-[720px] overflow-hidden">
             <div className="px-5 py-3.5 border-b-[1.5px] border-[#171717]/15 bg-[#fff8f1] flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-[#ff6f1e]" />

@@ -193,19 +193,19 @@ export default function ZaraProductDetailPage({
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-[#FFFFFF] text-[#111111] pt-6 sm:pt-8 pb-20 selection:bg-[#111111] selection:text-white">
       {/* ── Top Zara Architectural Header & Breadcrumb Bar (No floating black pill) ── */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-black/10 pb-4">
-        <div className="flex items-center gap-2 sm:gap-3 text-[11px] font-mono uppercase tracking-[0.14em] text-[#555555]">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 mb-6 flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 border-b border-black/10 pb-4">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-3 text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.12em] sm:tracking-[0.14em] text-[#555555]">
           <button
             onClick={() => onBackToStore('#sale')}
-            className="inline-flex items-center gap-1.5 text-[#111111] hover:text-[#EA301F] font-semibold transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-[#111111] hover:text-[#EA301F] font-semibold transition-colors cursor-pointer shrink-0"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
             <span>{t('product.backToCollection')}</span>
           </button>
           <span className="text-black/25">/</span>
           <button
             onClick={() => onBackToStore('#sale', product.gender)}
-            className="hover:text-[#111111] transition-colors cursor-pointer"
+            className="hover:text-[#111111] transition-colors cursor-pointer shrink-0"
           >
             {localizeGender(product.gender, language)}
           </button>
@@ -215,11 +215,11 @@ export default function ZaraProductDetailPage({
           <span className="hidden md:inline text-black/50 truncate max-w-[260px]">{localizeProductName(product.name, language)}</span>
         </div>
 
-        <div className="flex items-center gap-4 sm:gap-5 text-[11px] font-mono uppercase tracking-[0.14em] text-[#111111]">
+        <div className="flex items-center gap-3 sm:gap-5 text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.12em] sm:tracking-[0.14em] text-[#111111] shrink-0">
           {onOpenSearch && (
             <button
               onClick={onOpenSearch}
-              className="hover:text-[#EA301F] transition-colors border-b border-black/40 pb-0.5 cursor-pointer"
+              className="hover:text-[#EA301F] transition-colors border-b border-black/40 pb-0.5 cursor-pointer shrink-0"
             >
               {t('product.search')}
             </button>
@@ -227,7 +227,7 @@ export default function ZaraProductDetailPage({
           {onOpenCurrency && (
             <button
               onClick={onOpenCurrency}
-              className="hidden sm:inline-block text-[#555555] hover:text-[#111111] transition-colors cursor-pointer"
+              className="hidden sm:inline-block text-[#555555] hover:text-[#111111] transition-colors cursor-pointer shrink-0"
             >
               {activeCurrencyCode}
             </button>
@@ -235,7 +235,7 @@ export default function ZaraProductDetailPage({
           {onOpenWishlist && (
             <button
               onClick={onOpenWishlist}
-              className="hidden sm:inline-block hover:text-[#EA301F] transition-colors cursor-pointer"
+              className="hidden sm:inline-block hover:text-[#EA301F] transition-colors cursor-pointer shrink-0"
             >
               {t('product.saved')} ({wishlist.length})
             </button>
@@ -243,16 +243,16 @@ export default function ZaraProductDetailPage({
           {onOpenCart && (
             <button
               onClick={onOpenCart}
-              className="hover:text-[#EA301F] font-semibold transition-colors cursor-pointer"
+              className="hover:text-[#EA301F] font-semibold transition-colors cursor-pointer shrink-0"
             >
               {t('product.bag')} [{cartCount}]
             </button>
           )}
           <button
             onClick={() => onOpenFittingLab({ ...product, img: heroImage, image: heroImage, selectedColor: activeVariant?.name })}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-black/20 hover:border-[#EA301F] hover:bg-[#EA301F] hover:text-white text-[10px] font-mono uppercase tracking-[0.14em] transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 border border-black/20 hover:border-[#EA301F] hover:bg-[#EA301F] hover:text-white text-[10px] font-mono uppercase tracking-[0.12em] sm:tracking-[0.14em] transition-all cursor-pointer shrink-0"
           >
-            <Sparkles className="w-3 h-3" />
+            <Sparkles className="w-3 h-3 shrink-0" />
             <span>{t('nav.lab3d')}</span>
           </button>
         </div>

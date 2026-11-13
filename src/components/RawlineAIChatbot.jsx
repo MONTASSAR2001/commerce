@@ -221,7 +221,7 @@ export default function RawlineAIChatbot({
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end pointer-events-auto">
       {/* ─────────────────────────────────────────────────────────────
           1. CHATBOT WINDOW (APPEARS ON CLICK, MATCHES PIC 1)
       ───────────────────────────────────────────────────────────── */}
@@ -229,7 +229,7 @@ export default function RawlineAIChatbot({
         <div
           dir={isRtl ? 'rtl' : 'ltr'}
           style={CHATBOT_LUXURY_BG_STYLE}
-          className={`w-[92vw] sm:w-[390px] max-w-[420px] h-[580px] max-h-[82vh] mb-3 backdrop-blur-3xl border border-[#C59B27]/55 rounded-[28px] flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 zoom-in-95 duration-250 select-none ${isRtl ? 'text-right' : 'text-left'}`}
+          className={`w-[calc(100vw-2rem)] sm:w-[390px] max-w-[420px] h-[min(580px,calc(100dvh-6rem))] mb-3 backdrop-blur-3xl border border-[#C59B27]/55 rounded-[28px] flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 zoom-in-95 duration-250 select-none ${isRtl ? 'text-right' : 'text-left'}`}
         >
           {/* Header Bar */}
           <div className="px-5 py-3.5 bg-white/[0.03] backdrop-blur-md border-b border-white/10 flex items-center justify-between">
