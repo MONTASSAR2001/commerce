@@ -126,22 +126,47 @@ function normalizeColorLabel(colorItem) {
   return String(colorItem);
 }
 
-/** Create a Three.js WebGLRenderer with safe fallback options so strict browsers never crash React. */
+/** Create a Three.js WebGLRenderer with progressive fallbacks and clear diagnostics. */
 function createWebGLRendererSafe() {
   const attempts = [
     { antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' },
-    { antialias: false, alpha: false, preserveDrawingBuffer: true, powerPreference: 'default', failIfMajorPerformanceCaveat: false }
+    { antialias: true, alpha: false, preserveDrawingBuffer: false, powerPreference: 'default', failIfMajorPerformanceCaveat: false },
+    { antialias: false, alpha: false, preserveDrawingBuffer: false, powerPreference: 'default', failIfMajorPerformanceCaveat: false },
+    { antialias: false, alpha: true, stencil: false, depth: true, preserveDrawingBuffer: false, powerPreference: 'low-power', failIfMajorPerformanceCaveat: false },
+    null
   ];
   let lastErr = null;
+  let gpuMsg = '';
   for (const opts of attempts) {
+    const testCanvas = document.createElement('canvas');
+    const onErr = (ev) => {
+      if (ev?.statusMessage) gpuMsg = ev.statusMessage;
+    };
+    testCanvas.addEventListener('webglcontextcreationerror', onErr, false);
     try {
-      const r = new THREE.WebGLRenderer(opts);
-      if (r && r.getContext && r.getContext()) return r;
+      if (opts === null) {
+        const rawGl =
+          testCanvas.getContext('webgl2', { failIfMajorPerformanceCaveat: false }) ||
+          testCanvas.getContext('webgl2');
+        if (rawGl) {
+          const r = new THREE.WebGLRenderer({ canvas: testCanvas, context: rawGl, antialias: false });
+          testCanvas.removeEventListener('webglcontextcreationerror', onErr);
+          return r;
+        }
+      } else {
+        const r = new THREE.WebGLRenderer({ canvas: testCanvas, ...opts });
+        if (r && r.getContext && r.getContext()) {
+          testCanvas.removeEventListener('webglcontextcreationerror', onErr);
+          return r;
+        }
+      }
     } catch (err) {
       lastErr = err;
     }
+    testCanvas.removeEventListener('webglcontextcreationerror', onErr);
   }
-  throw lastErr || new Error('WebGL context unavailable');
+  const detail = gpuMsg || lastErr?.message || 'Browser WebGL2 context unavailable';
+  throw new Error(detail);
 }
 
 function getHexStr(colorNameOrHex, productObj = null) {
@@ -455,6 +480,9 @@ export default function Rawline3DFittingLab({
   const [modelLoading, setModelLoading] = useState(true);
   const [modelError, setModelError] = useState('');
   const [webglUnavailable, setWebglUnavailable] = useState(false);
+  const [webglFailReason, setWebglFailReason] = useState('');
+  const [webglRetryCount, setWebglRetryCount] = useState(0);
+  const studio2dCanvasRef = useRef(null);
   const [activeAngleLabel, setActiveAngleLabel] = useState('3/4');
 
   // Outfit Slots worn simultaneously on the 3D human
@@ -615,6 +643,7 @@ export default function Rawline3DFittingLab({
 
   // Move camera to clean preset azimuth around 360° circle
   const setCameraPreset = (preset) => {
+    setActiveAngleLabel(preset);
     const t = threeRef.current;
     if (!t.camera || !t.controls) return;
     const dist = 3.16;
@@ -629,8 +658,15 @@ export default function Rawline3DFittingLab({
     t.camera.position.set(Math.sin(theta) * dist, y + 0.08, Math.cos(theta) * dist);
     t.controls.target.set(0, 0.92, 0);
     t.controls.update();
-    setActiveAngleLabel(preset);
   };
+
+  useEffect(() => {
+    if (!isOpen) {
+      setWebglRetryCount(0);
+      setWebglUnavailable(false);
+      setWebglFailReason('');
+    }
+  }, [isOpen]);
 
   // ─────────────────────────────────────────────────────────────
   // THREE.JS WEBGL INITIALIZATION & LIFECYCLE
@@ -641,6 +677,7 @@ export default function Rawline3DFittingLab({
     if (!container) return;
 
     let frameId = null;
+    let retryTimer = null;
     let ro = null;
     let renderer = null;
     let controls = null;
@@ -657,8 +694,12 @@ export default function Rawline3DFittingLab({
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.05;
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      try {
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      } catch {
+        renderer.shadowMap.enabled = false;
+      }
       renderer.domElement.style.display = 'block';
       renderer.domElement.style.width = '100%';
       renderer.domElement.style.height = '100%';
@@ -666,8 +707,9 @@ export default function Rawline3DFittingLab({
       handleContextLost = (ev) => {
         ev.preventDefault();
         setWebglUnavailable(true);
+        setWebglFailReason('WebGL context lost by GPU/browser');
         setModelLoading(false);
-        setModelError('WebGL context paused by browser. Showing 2D Editorial Studio.');
+        setModelError('');
       };
       renderer.domElement.addEventListener('webglcontextlost', handleContextLost, false);
 
@@ -677,9 +719,19 @@ export default function Rawline3DFittingLab({
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0xf4f4f1);
 
-      pmrem = new THREE.PMREMGenerator(renderer);
-      scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-      scene.environmentIntensity = 0.85;
+      let envReady = false;
+      try {
+        pmrem = new THREE.PMREMGenerator(renderer);
+        scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+        scene.environmentIntensity = 0.85;
+        envReady = true;
+      } catch (pmremErr) {
+        console.warn('[Rawline3DFittingLab] PMREM environment skipped (using 3-point lights):', pmremErr);
+        if (pmrem) {
+          try { pmrem.dispose(); } catch {}
+          pmrem = null;
+        }
+      }
 
       const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 50);
       camera.position.set(0.86, 1.10, 3.04);
@@ -695,15 +747,16 @@ export default function Rawline3DFittingLab({
       controls.maxPolarAngle = Math.PI * 0.515;
       controls.update();
 
-      // Studio 3-Point Lighting
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0xcac8c0, 0.75);
+      // Studio 3-Point Lighting (boosted automatically if PMREM IBL unavailable)
+      const lightBoost = envReady ? 1.0 : 1.35;
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0xcac8c0, 0.75 * lightBoost);
       scene.add(hemiLight);
 
-      const keyLight = new THREE.DirectionalLight(0xfffaf2, 2.3);
+      const keyLight = new THREE.DirectionalLight(0xfffaf2, 2.3 * lightBoost);
       keyLight.position.set(2.4, 3.8, 3.2);
-      keyLight.castShadow = true;
-      keyLight.shadow.mapSize.width = 2048;
-      keyLight.shadow.mapSize.height = 2048;
+      keyLight.castShadow = renderer.shadowMap.enabled;
+      keyLight.shadow.mapSize.width = 1024;
+      keyLight.shadow.mapSize.height = 1024;
       keyLight.shadow.camera.near = 0.5;
       keyLight.shadow.camera.far = 12;
       const d = 1.6;
@@ -714,11 +767,11 @@ export default function Rawline3DFittingLab({
       keyLight.shadow.bias = -0.0005;
       scene.add(keyLight);
 
-      const fillLight = new THREE.DirectionalLight(0xeef4ff, 1.1);
+      const fillLight = new THREE.DirectionalLight(0xeef4ff, 1.1 * lightBoost);
       fillLight.position.set(-2.6, 2.1, 1.8);
       scene.add(fillLight);
 
-      const rimLight = new THREE.DirectionalLight(0xffffff, 1.05);
+      const rimLight = new THREE.DirectionalLight(0xffffff, 1.05 * lightBoost);
       rimLight.position.set(0.4, 2.8, -3.2);
       scene.add(rimLight);
 
@@ -729,7 +782,7 @@ export default function Rawline3DFittingLab({
       );
       shadowFloor.rotation.x = -Math.PI / 2;
       shadowFloor.position.y = 0.002;
-      shadowFloor.receiveShadow = true;
+      shadowFloor.receiveShadow = renderer.shadowMap.enabled;
       scene.add(shadowFloor);
 
       const podiumGroup = new THREE.Group();
@@ -740,7 +793,7 @@ export default function Rawline3DFittingLab({
       });
       const podiumMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.76, 0.04, 64), podiumMat);
       podiumMesh.position.y = -0.02;
-      podiumMesh.receiveShadow = true;
+      podiumMesh.receiveShadow = renderer.shadowMap.enabled;
       podiumGroup.add(podiumMesh);
 
       const rimMat = new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.22 });
@@ -765,6 +818,8 @@ export default function Rawline3DFittingLab({
         loadedModels: {}
       };
       setWebglUnavailable(false);
+      setWebglFailReason('');
+      setModelError('');
 
       const animate = () => {
         frameId = requestAnimationFrame(animate);
@@ -784,14 +839,21 @@ export default function Rawline3DFittingLab({
       ro = new ResizeObserver(handleResize);
       ro.observe(container);
     } catch (err) {
-      console.warn('[Rawline3DFittingLab] WebGL initialization unavailable, switching to 2D studio mode:', err);
-      setWebglUnavailable(true);
-      setModelLoading(false);
-      setModelError('3D WebGL is disabled or unavailable in this browser. Showing 2D Editorial Fitting Studio.');
+      const reason = String(err?.message || 'WebGL2 context unavailable');
+      console.warn('[Rawline3DFittingLab] WebGL2 unavailable, activating 2D Interactive Studio:', reason);
+      if (webglRetryCount === 0) {
+        retryTimer = setTimeout(() => setWebglRetryCount(1), 180);
+      } else {
+        setWebglUnavailable(true);
+        setWebglFailReason(reason);
+        setModelLoading(false);
+        setModelError('');
+      }
       if (container) container.innerHTML = '';
     }
 
     return () => {
+      if (retryTimer) clearTimeout(retryTimer);
       if (frameId) cancelAnimationFrame(frameId);
       if (ro) ro.disconnect();
       if (renderer && handleContextLost) {
@@ -805,7 +867,105 @@ export default function Rawline3DFittingLab({
       threeRef.current.scene = null;
       threeRef.current.activeAvatar = null;
     };
-  }, [isOpen]);
+  }, [isOpen, webglRetryCount]);
+
+  // Interactive 2D Studio Mannequin Renderer when WebGL2 is blocked by browser/GPU
+  useEffect(() => {
+    if (!isOpen || !webglUnavailable) return;
+    const canvas = studio2dCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const w = 520;
+    const h = 640;
+    canvas.width = w;
+    canvas.height = h;
+
+    const preset = LIGHTING_MODES.find((m) => m.id === lightingMode) || LIGHTING_MODES[0];
+    ctx.fillStyle = preset.bgCss;
+    ctx.fillRect(0, 0, w, h);
+
+    // Subtle studio floor podium
+    const podiumColorHex = `#${preset.podiumColor.toString(16).padStart(6, '0')}`;
+    const rimColorHex = `#${preset.podiumRim.toString(16).padStart(6, '0')}`;
+    ctx.beginPath();
+    ctx.ellipse(w / 2, 575, 165, 28, 0, 0, Math.PI * 2);
+    ctx.fillStyle = podiumColorHex;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = rimColorHex;
+    ctx.stroke();
+
+    const baseHeight = selectedGender === 'female' ? 175 : 184;
+    const hRatio = Math.max(0.84, Math.min(1.14, heightCm / baseHeight));
+    const widthScale = bodyBuild === 'slim' ? 0.91 : bodyBuild === 'relaxed' ? 1.09 : 1.0;
+    const shoulderW = (selectedGender === 'female' ? 68 : 84) * widthScale;
+    const waistW = (selectedGender === 'female' ? 48 : 66) * widthScale;
+    const hipW = (selectedGender === 'female' ? 72 : 68) * widthScale;
+    const yaw = activeAngleLabel === 'Side' ? 0.62 : activeAngleLabel === '3/4' ? 0.88 : 1.0;
+
+    const topHex = equippedOutfit.top?.product
+      ? getHexStr(equippedOutfit.top.color || normalizeColorLabel(equippedOutfit.top.product.colors?.[0]), equippedOutfit.top.product)
+      : '#1F2024';
+    const bottomHex = equippedOutfit.bottom?.product
+      ? getHexStr(equippedOutfit.bottom.color || normalizeColorLabel(equippedOutfit.bottom.product.colors?.[0]), equippedOutfit.bottom.product)
+      : '#26364A';
+    const shoesHex = equippedOutfit.shoes?.product
+      ? getHexStr(equippedOutfit.shoes.color || normalizeColorLabel(equippedOutfit.shoes.product.colors?.[0]), equippedOutfit.shoes.product)
+      : '#17171A';
+
+    ctx.save();
+    ctx.translate(w / 2, 570);
+    ctx.scale(yaw, hRatio);
+
+    // Legs / Trousers silhouette
+    ctx.fillStyle = bottomHex;
+    ctx.beginPath();
+    ctx.roundRect(-hipW * 0.48, -225, hipW * 0.44, 198, 10);
+    ctx.roundRect(hipW * 0.04, -225, hipW * 0.44, 198, 10);
+    ctx.fill();
+
+    // Shoes silhouette
+    ctx.fillStyle = shoesHex;
+    ctx.beginPath();
+    ctx.roundRect(-hipW * 0.50, -32, hipW * 0.46, 26, 8);
+    ctx.roundRect(hipW * 0.04, -32, hipW * 0.46, 26, 8);
+    ctx.fill();
+
+    // Torso / Jacket / Top silhouette
+    ctx.fillStyle = topHex;
+    ctx.beginPath();
+    ctx.moveTo(-shoulderW * 0.62, -372);
+    ctx.lineTo(shoulderW * 0.62, -372);
+    ctx.lineTo(waistW * 0.58, -220);
+    ctx.lineTo(-waistW * 0.58, -220);
+    ctx.closePath();
+    ctx.fill();
+    // Sleeves
+    ctx.beginPath();
+    ctx.roundRect(-shoulderW * 0.78, -370, shoulderW * 0.24, 146, 10);
+    ctx.roundRect(shoulderW * 0.54, -370, shoulderW * 0.24, 146, 10);
+    ctx.fill();
+
+    // Neck & Hands & Head with selected skin tone
+    ctx.fillStyle = skinToneHex;
+    ctx.fillRect(-11, -398, 22, 28);
+    ctx.beginPath();
+    ctx.arc(-shoulderW * 0.66, -214, 9, 0, Math.PI * 2);
+    ctx.arc(shoulderW * 0.66, -214, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(0, -424, 24, 31, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Clean studio hair silhouette
+    ctx.fillStyle = '#1B1715';
+    ctx.beginPath();
+    ctx.ellipse(0, -438, 26, 20, 0, Math.PI, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }, [isOpen, webglUnavailable, lightingMode, selectedGender, heightCm, bodyBuild, skinToneHex, equippedOutfit, activeAngleLabel]);
 
   // Toggle OrbitControls 360° auto-rotation
   useEffect(() => {
@@ -1102,7 +1262,7 @@ export default function Rawline3DFittingLab({
   };
 
   const handleSnapshot = () => {
-    const canvas = threeRef.current.renderer?.domElement;
+    const canvas = threeRef.current.renderer?.domElement || studio2dCanvasRef.current;
     if (!canvas) return;
     try {
       const a = document.createElement('a');
@@ -1173,9 +1333,15 @@ export default function Rawline3DFittingLab({
               <h1 className="font-azeret font-bold text-xs sm:text-sm tracking-wider uppercase text-white">
                 KRONOS • 3D VIRTUAL TRY-ON LAB
               </h1>
-              <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-mono border border-emerald-500/30">
+              <span
+                className={`hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono border ${
+                  webglUnavailable
+                    ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                    : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                }`}
+              >
                 <Sparkles className="w-2.5 h-2.5" />
-                REAL 3D WEBGL AVATAR
+                {webglUnavailable ? '2D INTERACTIVE STUDIO' : 'REAL 3D WEBGL AVATAR'}
               </span>
             </div>
             <p className="text-[11px] text-[#8E8E98] hidden sm:block">
@@ -1249,38 +1415,61 @@ export default function Rawline3DFittingLab({
             className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
           />
 
-          {/* 2D Editorial Fitting Studio Fallback when WebGL is disabled/blocked by browser */}
+          {/* Interactive 2D Studio Mannequin + Editorial Preview when WebGL2 is blocked by browser */}
           {webglUnavailable && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center p-6 sm:p-10 bg-gradient-to-b from-[#16161E] to-[#0B0B11] text-white">
-              <div className="max-w-lg w-full rounded-3xl border border-white/15 bg-[#12121A]/95 p-6 shadow-2xl flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-44 aspect-[3/4] rounded-2xl overflow-hidden bg-[#ECECE9] shrink-0 border border-white/10">
-                  {(activeProduct?.image || activeProduct?.img) && (
-                    <img
-                      src={activeProduct.image || activeProduct.img}
-                      alt={activeProduct.name}
-                      className="w-full h-full object-cover object-top"
-                    />
-                  )}
+            <div className="absolute inset-0 z-10 flex flex-col md:flex-row items-center justify-center gap-6 p-6 sm:p-10 bg-black/5">
+              <div className="relative h-[360px] sm:h-[460px] aspect-[520/640] rounded-3xl overflow-hidden border border-black/10 shadow-xl shrink-0">
+                <canvas ref={studio2dCanvasRef} className="w-full h-full block" />
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/75 text-white text-[10px] font-mono uppercase tracking-wider whitespace-nowrap">
+                  {activeAngleLabel} View · {heightCm} cm · {bodyBuild}
                 </div>
-                <div className="flex-1 min-w-0 space-y-3 text-left">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EA301F]/15 border border-[#EA301F]/40 text-[#FF6B5C] text-[10px] font-mono uppercase tracking-wider">
-                    2D Editorial Fitting View
-                  </span>
-                  <h3 className="font-azeret font-bold text-base uppercase text-white">
-                    {activeProduct?.name || 'K Curated Piece'}
-                  </h3>
-                  <p className="text-xs text-[#A1A1AA] leading-relaxed">
-                    3D WebGL rendering is unavailable or blocked in this browser window (common with strict Brave Shields or disabled GPU acceleration). Size calibration ({recommendedSize} recommended for {heightCm} cm), colorway switching, and Add to Bag remain fully active.
-                  </p>
-                  <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-mono">
-                    <span className="px-2.5 py-1 rounded-lg bg-white/10 text-white">
-                      Size: {selectedSize}
+              </div>
+
+              <div className="max-w-sm w-full rounded-3xl border border-white/15 bg-[#12121A]/95 p-5 shadow-2xl text-white space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-16 h-20 rounded-xl overflow-hidden bg-[#ECECE9] shrink-0 border border-white/10">
+                    {(activeProduct?.image || activeProduct?.img) && (
+                      <img
+                        src={activeProduct.image || activeProduct.img}
+                        alt={activeProduct.name}
+                        className="w-full h-full object-cover object-center"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 text-[9px] font-mono uppercase">
+                      2D Fitting Fallback
                     </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-white/10 text-white">
-                      {normalizeColorLabel(activeColor)}
-                    </span>
+                    <h3 className="font-azeret font-bold text-sm uppercase text-white truncate mt-1">
+                      {activeProduct?.name || 'K Curated Piece'}
+                    </h3>
+                    <div className="text-[11px] font-mono text-[#D1D1DB] mt-0.5">
+                      Size {selectedSize} · {normalizeColorLabel(activeColor)}
+                    </div>
                   </div>
                 </div>
+
+                <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-[11px] text-[#B4B4BF] leading-relaxed space-y-1.5">
+                  <p>
+                    <strong className="text-white">Why 3D is paused:</strong> {webglFailReason || 'Browser returned null for WebGL2'}.
+                  </p>
+                  <p className="text-[10px] text-[#8E8E98]">
+                    In Brave on Linux: open <code className="text-white/90">brave://settings/system</code> and turn ON <strong className="text-white/90">Use graphics acceleration when available</strong>, or close heavy 3D tabs and click Retry.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWebglUnavailable(false);
+                    setModelLoading(true);
+                    setWebglRetryCount((c) => c + 1);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-[#EA301F] hover:bg-[#FF3B28] text-white font-mono font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <RotateCw className="w-3.5 h-3.5" />
+                  <span>Retry 3D WebGL Engine</span>
+                </button>
               </div>
             </div>
           )}
@@ -1352,7 +1541,7 @@ export default function Rawline3DFittingLab({
             </div>
           )}
 
-          {modelError && (
+          {modelError && !webglUnavailable && (
             <div className="absolute top-20 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl bg-red-600/90 text-white text-xs font-mono z-20">
               {modelError}
             </div>
