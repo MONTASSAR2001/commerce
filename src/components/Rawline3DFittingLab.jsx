@@ -27,6 +27,35 @@ import {
   Tag,
   Shirt
 } from 'lucide-react';
+import {
+  extractSoftwareSceneData,
+  createSoftwareFrameBuffers,
+  renderSoftware3DFrame
+} from '../lib/software3dRenderer';
+
+function computeSlotByMeshName(equippedOutfit, selectedGender) {
+  const topSlot = equippedOutfit?.top;
+  const bottomSlot = equippedOutfit?.bottom;
+  const shoesSlot = equippedOutfit?.shoes;
+  const bagSlot = equippedOutfit?.bag;
+
+  const topMeshName =
+    mapProductToGarmentMesh(topSlot?.product) ||
+    (selectedGender === 'female' ? 'garment_tank_top' : 'garment_tshirt');
+  const isTopDress = topMeshName === 'garment_dress';
+  const bottomMeshName = isTopDress
+    ? null
+    : mapProductToGarmentMesh(bottomSlot?.product) || 'garment_baggy_jeans';
+  const shoesMeshName = mapProductToGarmentMesh(shoesSlot?.product) || 'garment_sneakers';
+  const bagMeshName = bagSlot?.product ? 'garment_bag' : null;
+
+  return {
+    [topMeshName]: topSlot,
+    ...(bottomMeshName ? { [bottomMeshName]: bottomSlot } : {}),
+    [shoesMeshName]: shoesSlot,
+    ...(bagMeshName ? { [bagMeshName]: bagSlot } : {})
+  };
+}
 
 // Photoreal MB-Lab Skin Texture Presets (2048px natural pore, lip & sebum detail loaded cleanly from /textures/skin/)
 const SKIN_TONES = [
@@ -482,7 +511,20 @@ export default function Rawline3DFittingLab({
   const [webglUnavailable, setWebglUnavailable] = useState(false);
   const [webglFailReason, setWebglFailReason] = useState('');
   const [webglRetryCount, setWebglRetryCount] = useState(0);
+  const [showWebglDetails, setShowWebglDetails] = useState(false);
+  const [softwareSceneTick, setSoftwareSceneTick] = useState(0);
   const studio2dCanvasRef = useRef(null);
+  const softwareOrbitRef = useRef({
+    yaw: Math.PI * 0.16,
+    pitch: 0.06,
+    zoom: 3.16,
+    dragging: false,
+    lastX: 0,
+    lastY: 0
+  });
+  const softwareDataCacheRef = useRef({});
+  const softwareFrameBufRef = useRef(null);
+  const renderSoftwareNowRef = useRef(null);
   const [activeAngleLabel, setActiveAngleLabel] = useState('3/4');
 
   // Outfit Slots worn simultaneously on the 3D human
@@ -641,13 +683,9 @@ export default function Rawline3DFittingLab({
     });
   }, [genderProducts, wardrobeTab, wardrobeSearch]);
 
-  // Move camera to clean preset azimuth around 360° circle
+  // Move camera to clean preset azimuth around 360° circle (works for WebGL & Software 3D)
   const setCameraPreset = (preset) => {
     setActiveAngleLabel(preset);
-    const t = threeRef.current;
-    if (!t.camera || !t.controls) return;
-    const dist = 3.16;
-    const y = 1.06;
     const angleMap = {
       'Front': 0,
       '3/4': Math.PI * 0.16,
@@ -655,6 +693,16 @@ export default function Rawline3DFittingLab({
       'Back': Math.PI
     };
     const theta = angleMap[preset] ?? 0;
+
+    softwareOrbitRef.current.yaw = theta;
+    softwareOrbitRef.current.pitch = 0.06;
+    softwareOrbitRef.current.zoom = 3.16;
+    renderSoftwareNowRef.current?.();
+
+    const t = threeRef.current;
+    if (!t.camera || !t.controls) return;
+    const dist = 3.16;
+    const y = 1.06;
     t.camera.position.set(Math.sin(theta) * dist, y + 0.08, Math.cos(theta) * dist);
     t.controls.target.set(0, 0.92, 0);
     t.controls.update();
@@ -665,6 +713,7 @@ export default function Rawline3DFittingLab({
       setWebglRetryCount(0);
       setWebglUnavailable(false);
       setWebglFailReason('');
+      setShowWebglDetails(false);
     }
   }, [isOpen]);
 
@@ -815,7 +864,7 @@ export default function Rawline3DFittingLab({
         podiumRim,
         keyLight,
         fillLight,
-        loadedModels: {}
+        loadedModels: threeRef.current.loadedModels || {}
       };
       setWebglUnavailable(false);
       setWebglFailReason('');
@@ -840,13 +889,12 @@ export default function Rawline3DFittingLab({
       ro.observe(container);
     } catch (err) {
       const reason = String(err?.message || 'WebGL2 context unavailable');
-      console.warn('[Rawline3DFittingLab] WebGL2 unavailable, activating 2D Interactive Studio:', reason);
+      console.warn('[Rawline3DFittingLab] WebGL2 unavailable, switching to Software 3D GL engine:', reason);
       if (webglRetryCount === 0) {
         retryTimer = setTimeout(() => setWebglRetryCount(1), 180);
       } else {
         setWebglUnavailable(true);
         setWebglFailReason(reason);
-        setModelLoading(false);
         setModelError('');
       }
       if (container) container.innerHTML = '';
@@ -869,103 +917,159 @@ export default function Rawline3DFittingLab({
     };
   }, [isOpen, webglRetryCount]);
 
-  // Interactive 2D Studio Mannequin Renderer when WebGL2 is blocked by browser/GPU
+  // Real 3D Software GL Rasterizer Engine for /models/woman.glb & /models/man.glb when WebGL2 is blocked
   useEffect(() => {
-    if (!isOpen || !webglUnavailable) return;
+    if (!isOpen || !webglUnavailable) {
+      renderSoftwareNowRef.current = null;
+      return;
+    }
     const canvas = studio2dCanvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
 
-    const w = 520;
-    const h = 640;
-    canvas.width = w;
-    canvas.height = h;
+    if (!softwareFrameBufRef.current) {
+      softwareFrameBufRef.current = createSoftwareFrameBuffers();
+    }
 
-    const preset = LIGHTING_MODES.find((m) => m.id === lightingMode) || LIGHTING_MODES[0];
-    ctx.fillStyle = preset.bgCss;
-    ctx.fillRect(0, 0, w, h);
-
-    // Subtle studio floor podium
-    const podiumColorHex = `#${preset.podiumColor.toString(16).padStart(6, '0')}`;
-    const rimColorHex = `#${preset.podiumRim.toString(16).padStart(6, '0')}`;
-    ctx.beginPath();
-    ctx.ellipse(w / 2, 575, 165, 28, 0, 0, Math.PI * 2);
-    ctx.fillStyle = podiumColorHex;
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = rimColorHex;
-    ctx.stroke();
-
+    const url = selectedGender === 'female' ? '/models/woman.glb' : '/models/man.glb';
     const baseHeight = selectedGender === 'female' ? 175 : 184;
-    const hRatio = Math.max(0.84, Math.min(1.14, heightCm / baseHeight));
-    const widthScale = bodyBuild === 'slim' ? 0.91 : bodyBuild === 'relaxed' ? 1.09 : 1.0;
-    const shoulderW = (selectedGender === 'female' ? 68 : 84) * widthScale;
-    const waistW = (selectedGender === 'female' ? 48 : 66) * widthScale;
-    const hipW = (selectedGender === 'female' ? 72 : 68) * widthScale;
-    const yaw = activeAngleLabel === 'Side' ? 0.62 : activeAngleLabel === '3/4' ? 0.88 : 1.0;
+    const lightingPreset = LIGHTING_MODES.find((m) => m.id === lightingMode) || LIGHTING_MODES[0];
+    const toneObj = SKIN_TONES.find((s) => s.hex.toLowerCase() === skinToneHex.toLowerCase()) || SKIN_TONES[0];
+    const buildScale = bodyBuild === 'slim' ? 0.94 : bodyBuild === 'relaxed' ? 1.07 : 1.0;
 
-    const topHex = equippedOutfit.top?.product
-      ? getHexStr(equippedOutfit.top.color || normalizeColorLabel(equippedOutfit.top.product.colors?.[0]), equippedOutfit.top.product)
-      : '#1F2024';
-    const bottomHex = equippedOutfit.bottom?.product
-      ? getHexStr(equippedOutfit.bottom.color || normalizeColorLabel(equippedOutfit.bottom.product.colors?.[0]), equippedOutfit.bottom.product)
-      : '#26364A';
-    const shoesHex = equippedOutfit.shoes?.product
-      ? getHexStr(equippedOutfit.shoes.color || normalizeColorLabel(equippedOutfit.shoes.product.colors?.[0]), equippedOutfit.shoes.product)
-      : '#17171A';
+    const slotByMeshName = computeSlotByMeshName(equippedOutfit, selectedGender);
+    const visibleGarments = {};
+    Object.entries(slotByMeshName).forEach(([meshName, slotItem]) => {
+      if (!slotItem?.product) return;
+      const prod = slotItem.product;
+      const chosenColorName = slotItem.color || prod.colors?.[0] || 'Standard';
+      visibleGarments[meshName] = { hex: getHexStr(chosenColorName, prod) };
+    });
 
-    ctx.save();
-    ctx.translate(w / 2, 570);
-    ctx.scale(yaw, hRatio);
+    const drawFrame = () => {
+      const sceneData = softwareDataCacheRef.current[url];
+      if (!sceneData) return;
+      const orbit = softwareOrbitRef.current;
+      renderSoftware3DFrame({
+        canvas,
+        buffers: softwareFrameBufRef.current,
+        sceneData,
+        options: {
+          lightingMode,
+          lightingPreset,
+          skinToneHex,
+          isDefaultSkin: Boolean(toneObj.isDefault),
+          heightCm,
+          baseHeight,
+          bodyBuild: buildScale,
+          selectedSize,
+          yaw: orbit.yaw,
+          pitch: orbit.pitch,
+          zoomDist: orbit.zoom,
+          visibleGarments
+        }
+      });
+    };
 
-    // Legs / Trousers silhouette
-    ctx.fillStyle = bottomHex;
-    ctx.beginPath();
-    ctx.roundRect(-hipW * 0.48, -225, hipW * 0.44, 198, 10);
-    ctx.roundRect(hipW * 0.04, -225, hipW * 0.44, 198, 10);
-    ctx.fill();
+    renderSoftwareNowRef.current = drawFrame;
+    drawFrame();
 
-    // Shoes silhouette
-    ctx.fillStyle = shoesHex;
-    ctx.beginPath();
-    ctx.roundRect(-hipW * 0.50, -32, hipW * 0.46, 26, 8);
-    ctx.roundRect(hipW * 0.04, -32, hipW * 0.46, 26, 8);
-    ctx.fill();
+    let dragRaf = 0;
+    const scheduleDraw = () => {
+      if (dragRaf) return;
+      dragRaf = requestAnimationFrame(() => {
+        dragRaf = 0;
+        drawFrame();
+      });
+    };
 
-    // Torso / Jacket / Top silhouette
-    ctx.fillStyle = topHex;
-    ctx.beginPath();
-    ctx.moveTo(-shoulderW * 0.62, -372);
-    ctx.lineTo(shoulderW * 0.62, -372);
-    ctx.lineTo(waistW * 0.58, -220);
-    ctx.lineTo(-waistW * 0.58, -220);
-    ctx.closePath();
-    ctx.fill();
-    // Sleeves
-    ctx.beginPath();
-    ctx.roundRect(-shoulderW * 0.78, -370, shoulderW * 0.24, 146, 10);
-    ctx.roundRect(shoulderW * 0.54, -370, shoulderW * 0.24, 146, 10);
-    ctx.fill();
+    const handlePointerDown = (e) => {
+      const orbit = softwareOrbitRef.current;
+      orbit.dragging = true;
+      orbit.lastX = e.clientX;
+      orbit.lastY = e.clientY;
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch {
+        // Ignore if pointer capture is unavailable
+      }
+    };
 
-    // Neck & Hands & Head with selected skin tone
-    ctx.fillStyle = skinToneHex;
-    ctx.fillRect(-11, -398, 22, 28);
-    ctx.beginPath();
-    ctx.arc(-shoulderW * 0.66, -214, 9, 0, Math.PI * 2);
-    ctx.arc(shoulderW * 0.66, -214, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(0, -424, 24, 31, 0, 0, Math.PI * 2);
-    ctx.fill();
+    const handlePointerMove = (e) => {
+      const orbit = softwareOrbitRef.current;
+      if (!orbit.dragging) return;
+      const dx = e.clientX - orbit.lastX;
+      const dy = e.clientY - orbit.lastY;
+      orbit.lastX = e.clientX;
+      orbit.lastY = e.clientY;
+      orbit.yaw += dx * 0.011;
+      orbit.pitch = Math.max(-0.5, Math.min(0.65, orbit.pitch + dy * 0.008));
+      scheduleDraw();
+    };
 
-    // Clean studio hair silhouette
-    ctx.fillStyle = '#1B1715';
-    ctx.beginPath();
-    ctx.ellipse(0, -438, 26, 20, 0, Math.PI, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }, [isOpen, webglUnavailable, lightingMode, selectedGender, heightCm, bodyBuild, skinToneHex, equippedOutfit, activeAngleLabel]);
+    const handlePointerUp = (e) => {
+      softwareOrbitRef.current.dragging = false;
+      try {
+        canvas.releasePointerCapture(e.pointerId);
+      } catch {
+        // Ignore if not captured
+      }
+    };
+
+    const handleWheel = (e) => {
+      e.preventDefault();
+      const orbit = softwareOrbitRef.current;
+      orbit.zoom = Math.max(1.85, Math.min(4.8, orbit.zoom + e.deltaY * 0.0025));
+      scheduleDraw();
+    };
+
+    canvas.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+
+    const ro = new ResizeObserver(() => scheduleDraw());
+    ro.observe(canvas);
+
+    let spinRaf = 0;
+    let lastTime = performance.now();
+    if (autoRotate) {
+      const tick = (now) => {
+        const dt = Math.min(0.05, (now - lastTime) / 1000);
+        lastTime = now;
+        if (!softwareOrbitRef.current.dragging) {
+          softwareOrbitRef.current.yaw += dt * 0.9;
+          drawFrame();
+        }
+        spinRaf = requestAnimationFrame(tick);
+      };
+      spinRaf = requestAnimationFrame(tick);
+    }
+
+    return () => {
+      if (renderSoftwareNowRef.current === drawFrame) {
+        renderSoftwareNowRef.current = null;
+      }
+      if (dragRaf) cancelAnimationFrame(dragRaf);
+      if (spinRaf) cancelAnimationFrame(spinRaf);
+      ro.disconnect();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('wheel', handleWheel);
+    };
+  }, [
+    isOpen,
+    webglUnavailable,
+    softwareSceneTick,
+    lightingMode,
+    selectedGender,
+    heightCm,
+    bodyBuild,
+    selectedSize,
+    skinToneHex,
+    equippedOutfit,
+    autoRotate
+  ]);
 
   // Toggle OrbitControls 360° auto-rotation
   useEffect(() => {
@@ -988,17 +1092,27 @@ export default function Rawline3DFittingLab({
     if (t.fillLight) t.fillLight.intensity = preset.fillIntensity;
   }, [lightingMode, isOpen]);
 
-  // Load & Switch 3D Man vs Woman Avatar Model cleanly
+  // Load & Switch 3D Man vs Woman Avatar Model cleanly (supports both WebGL2 and Software 3D GL)
   useEffect(() => {
     if (!isOpen) return;
     const t = threeRef.current;
-    if (!t.scene) return;
+    if (!t.scene && !webglUnavailable) return;
 
     let cancelled = false;
     const url = selectedGender === 'female' ? '/models/woman.glb' : '/models/man.glb';
 
     const attachAvatar = (gltfScene) => {
-      if (cancelled || !t.scene) return;
+      if (cancelled) return;
+
+      if (webglUnavailable || !t.scene) {
+        if (!softwareDataCacheRef.current[url]) {
+          softwareDataCacheRef.current[url] = extractSoftwareSceneData(gltfScene);
+        }
+        setModelLoading(false);
+        setModelError('');
+        setSoftwareSceneTick((v) => v + 1);
+        return;
+      }
 
       if (t.activeAvatar) {
         t.scene.remove(t.activeAvatar);
@@ -1116,6 +1230,7 @@ export default function Rawline3DFittingLab({
         },
         undefined,
         (err) => {
+          if (cancelled) return;
           console.error('GLB Load error:', err);
           setModelError('Could not load 3D human model.');
           setModelLoading(false);
@@ -1126,7 +1241,7 @@ export default function Rawline3DFittingLab({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, selectedGender]);
+  }, [isOpen, selectedGender, webglUnavailable, webglRetryCount]);
 
   // Apply Live Body Proportions, Photographic Skin Complexion, & Exact Tailored Zara Garments
   const applyBodyAndOutfitMaterials = () => {
@@ -1180,23 +1295,7 @@ export default function Rawline3DFittingLab({
       });
     }
 
-    const topSlot = equippedOutfit.top;
-    const bottomSlot = equippedOutfit.bottom;
-    const shoesSlot = equippedOutfit.shoes;
-    const bagSlot = equippedOutfit.bag;
-
-    const topMeshName = mapProductToGarmentMesh(topSlot?.product) || (selectedGender === 'female' ? 'garment_tank_top' : 'garment_tshirt');
-    const isTopDress = topMeshName === 'garment_dress';
-    const bottomMeshName = isTopDress ? null : mapProductToGarmentMesh(bottomSlot?.product) || 'garment_baggy_jeans';
-    const shoesMeshName = mapProductToGarmentMesh(shoesSlot?.product) || 'garment_sneakers';
-    const bagMeshName = bagSlot?.product ? 'garment_bag' : null;
-
-    const slotByMeshName = {
-      [topMeshName]: topSlot,
-      ...(bottomMeshName ? { [bottomMeshName]: bottomSlot } : {}),
-      [shoesMeshName]: shoesSlot,
-      ...(bagMeshName ? { [bagMeshName]: bagSlot } : {})
-    };
+    const slotByMeshName = computeSlotByMeshName(equippedOutfit, selectedGender);
 
     avatar.traverse((child) => {
       if (!child.isMesh || !child.material) return;
@@ -1341,7 +1440,7 @@ export default function Rawline3DFittingLab({
                 }`}
               >
                 <Sparkles className="w-2.5 h-2.5" />
-                {webglUnavailable ? '2D INTERACTIVE STUDIO' : 'REAL 3D WEBGL AVATAR'}
+                {webglUnavailable ? 'REAL 3D AVATAR · SOFTWARE GL' : 'REAL 3D WEBGL AVATAR'}
               </span>
             </div>
             <p className="text-[11px] text-[#8E8E98] hidden sm:block">
@@ -1415,63 +1514,55 @@ export default function Rawline3DFittingLab({
             className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
           />
 
-          {/* Interactive 2D Studio Mannequin + Editorial Preview when WebGL2 is blocked by browser */}
+          {/* Full-Bleed Real 3D Software GL Canvas when Browser/GPU Refuses WebGL2 */}
           {webglUnavailable && (
-            <div className="absolute inset-0 z-10 flex flex-col md:flex-row items-center justify-center gap-6 p-6 sm:p-10 bg-black/5">
-              <div className="relative h-[360px] sm:h-[460px] aspect-[520/640] rounded-3xl overflow-hidden border border-black/10 shadow-xl shrink-0">
-                <canvas ref={studio2dCanvasRef} className="w-full h-full block" />
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/75 text-white text-[10px] font-mono uppercase tracking-wider whitespace-nowrap">
-                  {activeAngleLabel} View · {heightCm} cm · {bodyBuild}
-                </div>
-              </div>
+            <>
+              <canvas
+                ref={studio2dCanvasRef}
+                className="absolute inset-0 w-full h-full block z-[5] cursor-grab active:cursor-grabbing touch-none"
+              />
 
-              <div className="max-w-sm w-full rounded-3xl border border-white/15 bg-[#12121A]/95 p-5 shadow-2xl text-white space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-16 h-20 rounded-xl overflow-hidden bg-[#ECECE9] shrink-0 border border-white/10">
-                    {(activeProduct?.image || activeProduct?.img) && (
-                      <img
-                        src={activeProduct.image || activeProduct.img}
-                        alt={activeProduct.name}
-                        className="w-full h-full object-cover object-center"
-                      />
-                    )}
+              {/* Compact Non-Blocking Top Status Pill + Optional Diagnostics Popover */}
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+                <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md border border-white/15 rounded-full px-3 py-1.5 shadow-lg text-[10px] font-mono text-white">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                  <span className="hidden sm:inline text-white/90">3D Software GL · GPU Paused</span>
+                  <span className="sm:hidden text-white/90">Software 3D</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowWebglDetails((v) => !v)}
+                    className="px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-[#D1D1DB] hover:text-white transition-colors cursor-pointer"
+                  >
+                    {showWebglDetails ? 'Hide' : 'Why?'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowWebglDetails(false);
+                      setWebglUnavailable(false);
+                      setModelLoading(true);
+                      setWebglRetryCount((c) => c + 1);
+                    }}
+                    className="px-2 py-0.5 rounded-full bg-[#EA301F] hover:bg-[#FF3B28] text-white font-bold transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <RotateCw className="w-2.5 h-2.5" />
+                    <span>Retry 3D</span>
+                  </button>
+                </div>
+
+                {showWebglDetails && (
+                  <div className="mt-2 w-[320px] sm:w-[360px] rounded-2xl border border-white/15 bg-[#12121A]/95 p-3.5 shadow-2xl text-[11px] text-[#B4B4BF] leading-relaxed space-y-1.5 backdrop-blur-md">
+                    <p>
+                      <strong className="text-white">Browser GPU WebGL2 paused:</strong>{' '}
+                      {webglFailReason || 'Browser returned null for WebGL2'}.
+                    </p>
+                    <p className="text-[10px] text-[#8E8E98]">
+                      Showing your real 3D human (.glb) model via CPU 3D Software GL. To re-enable hardware GPU in Brave on Linux, open <code className="text-white/90">brave://settings/system</code> and enable <strong className="text-white/90">Use graphics acceleration when available</strong>, then restart Brave or click Retry 3D.
+                    </p>
                   </div>
-                  <div className="min-w-0">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 text-[9px] font-mono uppercase">
-                      2D Fitting Fallback
-                    </span>
-                    <h3 className="font-azeret font-bold text-sm uppercase text-white truncate mt-1">
-                      {activeProduct?.name || 'K Curated Piece'}
-                    </h3>
-                    <div className="text-[11px] font-mono text-[#D1D1DB] mt-0.5">
-                      Size {selectedSize} · {normalizeColorLabel(activeColor)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-[11px] text-[#B4B4BF] leading-relaxed space-y-1.5">
-                  <p>
-                    <strong className="text-white">Why 3D is paused:</strong> {webglFailReason || 'Browser returned null for WebGL2'}.
-                  </p>
-                  <p className="text-[10px] text-[#8E8E98]">
-                    In Brave on Linux: open <code className="text-white/90">brave://settings/system</code> and turn ON <strong className="text-white/90">Use graphics acceleration when available</strong>, or close heavy 3D tabs and click Retry.
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setWebglUnavailable(false);
-                    setModelLoading(true);
-                    setWebglRetryCount((c) => c + 1);
-                  }}
-                  className="w-full py-2.5 rounded-xl bg-[#EA301F] hover:bg-[#FF3B28] text-white font-mono font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                >
-                  <RotateCw className="w-3.5 h-3.5" />
-                  <span>Retry 3D WebGL Engine</span>
-                </button>
+                )}
               </div>
-            </div>
+            </>
           )}
 
           {/* Initial MAN vs WOMAN Onboarding Selector Overlay (when opening 3D Lab from global nav) */}
@@ -1541,7 +1632,7 @@ export default function Rawline3DFittingLab({
             </div>
           )}
 
-          {modelError && !webglUnavailable && (
+          {modelError && (
             <div className="absolute top-20 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl bg-red-600/90 text-white text-xs font-mono z-20">
               {modelError}
             </div>
