@@ -303,20 +303,24 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
           await checkAdminProfile(sb, u);
         }
       }
-      const [ordList, mediaList, promoList, subList] = await Promise.all([
+      const [ordList, mediaList, promoList, subList, storePatch] = await Promise.all([
         fetchOrders(),
         fetchMediaAssets(),
         fetchPromoCodes(),
-        fetchNewsletterSubscribers()
+        fetchNewsletterSubscribers(),
+        fetchStorefrontFromSupabase({ includeUnpublished: true })
       ]);
       setOrders(ordList);
       setMediaAssets(mediaList);
       setPromos(promoList);
       setSubscribers(subList);
+      if (storePatch) {
+        onHydrateData?.(storePatch);
+      }
     } finally {
       setRefreshing(false);
     }
-  }, [checkAdminProfile]);
+  }, [checkAdminProfile, onHydrateData]);
 
   useEffect(() => {
     loadAllAdminCollections();
@@ -343,11 +347,14 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
       }
     };
     const onRequireAuth = (e) => {
-      notify(
-        e?.detail
-          ? `${e.detail} — changes stay active in local Studio preview.`
-          : 'Updated in open Studio preview — sign in anytime via Admin Sign In to sync to cloud.'
-      );
+      const msg =
+        e?.detail ||
+        'Sign in with montassarzarai0@gmail.com to apply changes live to Supabase & the main website.';
+      setAuthModalMode('signin');
+      setAuthReason(msg);
+      setAuthError('');
+      setAuthModalOpen(true);
+      notify(msg);
     };
     const onRequireSql = (e) => {
       setAuthModalMode('sql_needed');
@@ -585,8 +592,10 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                       !isSupabaseConfigured()
                         ? 'LOCAL MODE'
                         : sessionUser && adminProfileActive
-                          ? 'bg-[#22c55e]/20 text-[#1b7a42]'
-                          : 'bg-[#22c55e]/15 text-[#1b7a42]'
+                          ? 'bg-[#f59e0b]/20 text-[#9a3412]'
+                          : isSupabaseConfigured()
+                            ? 'bg-[#ffedd5] text-[#c2410c]'
+                            : 'bg-[#22c55e]/15 text-[#1b7a42]'
                     }`}
                   >
                     {!isSupabaseConfigured()
@@ -595,7 +604,7 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                         ? 'SUPERADMIN'
                         : sessionUser
                           ? 'SQL PENDING'
-                          : 'OPEN STUDIO'}
+                          : 'READ ONLY'}
                   </span>
                 </div>
 
@@ -633,10 +642,18 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                         <span>Supabase Storage + RLS Unlocked</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 text-[9px] font-mono text-[#1b7a42] pt-1">
-                        <ShieldCheck className="w-3 h-3 text-[#22c55e] shrink-0" />
-                        <span>Public Studio View · Cloud Read Ready</span>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthModalMode(sessionUser ? 'sql_needed' : 'signin');
+                          setAuthReason('Sign in with montassarzarai0@gmail.com to unlock live edits & deletes on the storefront.');
+                          setAuthModalOpen(true);
+                        }}
+                        className="flex items-center gap-1 text-[9px] font-mono text-[#c2410c] font-bold pt-1 hover:underline cursor-pointer text-left"
+                      >
+                        <Lock className="w-3 h-3 text-[#c2410c] shrink-0" />
+                        <span>{sessionUser ? 'Run Admin SQL · Sync Locked' : 'Sign In Required · Cloud Read Only'}</span>
+                      </button>
                     )
                   ) : (
                     <div className="flex items-center gap-1 text-[9px] font-mono text-[#1b7a42] pt-1">
@@ -727,7 +744,9 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                 className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[20px] border text-[10px] font-mono font-bold cursor-pointer ${
                   sessionUser && adminProfileActive
                     ? 'border-[#171717]/40 bg-[#22c55e]/10 text-[#1b7a42] hover:bg-[#22c55e]/20'
-                    : 'border-[#171717]/40 bg-[#22c55e]/10 text-[#1b7a42] hover:bg-[#22c55e]/20'
+                    : isSupabaseConfigured()
+                      ? 'border-[#c2410c]/50 bg-[#ffedd5] text-[#9a3412] hover:bg-[#fed7aa]'
+                      : 'border-[#171717]/40 bg-[#22c55e]/10 text-[#1b7a42] hover:bg-[#22c55e]/20'
                 }`}
               >
                 {sessionUser && adminProfileActive ? (
@@ -738,8 +757,8 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                   </>
                 ) : (
                   <>
-                    <ShieldCheck className="w-3 h-3 text-[#22c55e]" />
-                    <span>{sessionUser ? 'run admin sql' : 'open studio'}</span>
+                    <Lock className="w-3 h-3 text-[#c2410c]" />
+                    <span>{sessionUser ? 'run admin sql' : isSupabaseConfigured() ? 'sign in to sync' : 'open studio'}</span>
                   </>
                 )}
               </button>

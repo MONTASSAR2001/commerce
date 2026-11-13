@@ -7,6 +7,14 @@
  * tones, and 360-degree camera orbit without any WebGL dependency.
  */
 
+const GAMMA_LUT = (() => {
+  const lut = new Uint8ClampedArray(1025);
+  for (let i = 0; i <= 1024; i++) {
+    lut[i] = Math.round(Math.pow(i / 1024, 0.9) * 255);
+  }
+  return lut;
+})();
+
 function parseHexToRgb01(hex) {
   let num = 0xffffff;
   if (typeof hex === 'number' && Number.isFinite(hex)) {
@@ -60,7 +68,7 @@ function sampleMaterialTexture(material) {
   const rawH = img.naturalHeight || img.videoHeight || img.height || 0;
   if (!rawW || !rawH) return null;
 
-  const size = 256;
+  const size = 128;
   try {
     const canvas = document.createElement('canvas');
     canvas.width = size;
@@ -244,6 +252,58 @@ export function extractSoftwareSceneData(gltfScene) {
       pos[i] = (pos[i] - cx) * unitScale;
       pos[i + 1] = (pos[i + 1] - minY) * unitScale;
       pos[i + 2] = (pos[i + 2] - cz) * unitScale;
+    }
+
+    // Build watertight vertex-clustered interactive LOD for dense meshes (>8k tris)
+    if (mesh.triCount > 8000) {
+      const cellToRep = new Map();
+      const repOfVert = new Uint32Array(mesh.vertexCount);
+      for (let v = 0; v < mesh.vertexCount; v++) {
+        const px = pos[v * 3];
+        const py = pos[v * 3 + 1];
+        const pz = pos[v * 3 + 2];
+        const cellSize = py > 1.44 ? 0.008 : 0.018;
+        const gx = Math.round(px / cellSize);
+        const gy = Math.round(py / cellSize);
+        const gz = Math.round(pz / cellSize);
+        const key = `${gx},${gy},${gz}`;
+        let rep = cellToRep.get(key);
+        if (rep === undefined) {
+          rep = v;
+          cellToRep.set(key, rep);
+        }
+        repOfVert[v] = rep;
+      }
+
+      const lodIdx = [];
+      const usedSet = new Uint8Array(mesh.vertexCount);
+      const uniqueVerts = [];
+      const idx = mesh.indices;
+      for (let t = 0; t < mesh.triCount; t++) {
+        const i0 = idx ? idx[t * 3] : t * 3;
+        const i1 = idx ? idx[t * 3 + 1] : t * 3 + 1;
+        const i2 = idx ? idx[t * 3 + 2] : t * 3 + 2;
+        const c0 = repOfVert[i0];
+        const c1 = repOfVert[i1];
+        const c2 = repOfVert[i2];
+        if (c0 === c1 || c1 === c2 || c0 === c2) continue;
+        lodIdx.push(c0, c1, c2);
+        if (!usedSet[c0]) {
+          usedSet[c0] = 1;
+          uniqueVerts.push(c0);
+        }
+        if (!usedSet[c1]) {
+          usedSet[c1] = 1;
+          uniqueVerts.push(c1);
+        }
+        if (!usedSet[c2]) {
+          usedSet[c2] = 1;
+          uniqueVerts.push(c2);
+        }
+      }
+      mesh.lodIndices = new Uint32Array(lodIdx);
+      mesh.lodTriCount = Math.floor(lodIdx.length / 3);
+      mesh.lodVerts = new Uint32Array(uniqueVerts);
     }
   }
 
@@ -522,30 +582,31 @@ function rasterizeTriangleGouraud(
   g2,
   b2
 ) {
-  // Sort vertices vertically (y0 <= y1 <= y2)
+  // Sort vertices vertically (y0 <= y1 <= y2) with zero heap allocations
+  let tmp = 0;
   if (y0 > y1) {
-    [x0, x1] = [x1, x0];
-    [y0, y1] = [y1, y0];
-    [z0, z1] = [z1, z0];
-    [r0, r1] = [r1, r0];
-    [g0, g1] = [g1, g0];
-    [b0, b1] = [b1, b0];
+    tmp = x0; x0 = x1; x1 = tmp;
+    tmp = y0; y0 = y1; y1 = tmp;
+    tmp = z0; z0 = z1; z1 = tmp;
+    tmp = r0; r0 = r1; r1 = tmp;
+    tmp = g0; g0 = g1; g1 = tmp;
+    tmp = b0; b0 = b1; b1 = tmp;
   }
   if (y1 > y2) {
-    [x1, x2] = [x2, x1];
-    [y1, y2] = [y2, y1];
-    [z1, z2] = [z2, z1];
-    [r1, r2] = [r2, r1];
-    [g1, g2] = [g2, g1];
-    [b1, b2] = [b2, b1];
+    tmp = x1; x1 = x2; x2 = tmp;
+    tmp = y1; y1 = y2; y2 = tmp;
+    tmp = z1; z1 = z2; z2 = tmp;
+    tmp = r1; r1 = r2; r2 = tmp;
+    tmp = g1; g1 = g2; g2 = tmp;
+    tmp = b1; b1 = b2; b2 = tmp;
   }
   if (y0 > y1) {
-    [x0, x1] = [x1, x0];
-    [y0, y1] = [y1, y0];
-    [z0, z1] = [z1, z0];
-    [r0, r1] = [r1, r0];
-    [g0, g1] = [g1, g0];
-    [b0, b1] = [b1, b0];
+    tmp = x0; x0 = x1; x1 = tmp;
+    tmp = y0; y0 = y1; y1 = tmp;
+    tmp = z0; z0 = z1; z1 = tmp;
+    tmp = r0; r0 = r1; r1 = tmp;
+    tmp = g0; g0 = g1; g1 = tmp;
+    tmp = b0; b0 = b1; b1 = tmp;
   }
 
   const iy0 = Math.ceil(y0);
@@ -600,11 +661,11 @@ function rasterizeTriangleGouraud(
     }
 
     if (lx > rx) {
-      [lx, rx] = [rx, lx];
-      [lz, rz] = [rz, lz];
-      [lr, rr] = [rr, lr];
-      [lg, rg] = [rg, lg];
-      [lb, rb] = [rb, lb];
+      tmp = lx; lx = rx; rx = tmp;
+      tmp = lz; lz = rz; rz = tmp;
+      tmp = lr; lr = rr; rr = tmp;
+      tmp = lg; lg = rg; rg = tmp;
+      tmp = lb; lb = rb; rb = tmp;
     }
 
     const startX = Math.max(0, Math.ceil(lx));
@@ -629,7 +690,11 @@ function rasterizeTriangleGouraud(
       const idx = rowOffset + x;
       if (pz < zBuf[idx]) {
         zBuf[idx] = pz;
-        colorBuf[idx] = packAbgr(pr, pg, pb);
+        colorBuf[idx] =
+          0xff000000 |
+          (((pb < 0 ? 0 : pb > 255 ? 255 : pb) | 0) << 16) |
+          (((pg < 0 ? 0 : pg > 255 ? 255 : pg) | 0) << 8) |
+          ((pr < 0 ? 0 : pr > 255 ? 255 : pr) | 0);
       }
       pz += dz;
       pr += dr;
@@ -658,12 +723,6 @@ export function renderSoftware3DFrame({
     canvas.height = displayH;
   }
 
-  // Cap internal raster buffer resolution (~0.72x max 620px tall) for crisp ~60fps CPU drag
-  const renderScale = Math.min(1, 620 / displayH);
-  const w = Math.max(240, Math.round(displayW * renderScale));
-  const h = Math.max(280, Math.round(displayH * renderScale));
-  ensureFrameBuffers(buffers, w, h);
-
   const {
     lightingMode = 'atelier',
     lightingPreset = null,
@@ -677,7 +736,15 @@ export function renderSoftware3DFrame({
     pitch = 0.06,
     zoomDist = 3.16,
     visibleGarments = {},
+    interactive = false,
   } = options || {};
+
+  // Adaptive internal resolution: ~360px during active drag/spin (~3x fewer pixels), crisp ~620px when idle
+  const targetMaxH = interactive ? 360 : 620;
+  const renderScale = Math.min(1, targetMaxH / displayH);
+  const w = Math.max(200, Math.round(displayW * renderScale));
+  const h = Math.max(240, Math.round(displayH * renderScale));
+  ensureFrameBuffers(buffers, w, h);
 
   const palette = getLightingPalette(lightingMode, lightingPreset);
   const skinToneRgb = parseHexToRgb01(skinToneHex);
@@ -744,8 +811,12 @@ export function renderSoftware3DFrame({
     const useTex = tint.useTexture && texPx && uvs;
     const blend = tint.multiplySkinTex ? (isDefaultSkin ? 0.92 : 0.42) : tint.texBlend;
 
-    // 1. Transform & shade vertices once per mesh
-    for (let v = 0; v < vertexCount; v++) {
+    // 1. Transform & shade vertices once per mesh (use clustered LOD verts when dragging/spinning)
+    const useLod = interactive && Boolean(mesh.lodIndices);
+    const activeVerts = useLod ? mesh.lodVerts : null;
+    const activeVertLoopCount = activeVerts ? activeVerts.length : vertexCount;
+    for (let vi = 0; vi < activeVertLoopCount; vi++) {
+      const v = activeVerts ? activeVerts[vi] : vi;
       const pOff = v * 3;
       const px = positions[pOff] * sx;
       const py = positions[pOff + 1] * sy - targetY;
@@ -784,7 +855,9 @@ export function renderSoftware3DFrame({
       const ndlFill = Math.max(0, -rnx * 0.65 + vny * 0.25 + vnz * 0.72);
       const ndlRim = Math.max(0, rnx * rx + vny * ry + vnz * rz);
       const rimScale = tint.rimScale ?? 0.35;
-      const fresnelRim = Math.pow(Math.max(0, 1 - Math.abs(vnz)), 2.4) * rimScale;
+      const absVnz = vnz < 0 ? -vnz : vnz;
+      const fres = absVnz < 1 ? 1 - absVnz : 0;
+      const fresnelRim = fres * fres * fres * rimScale;
 
       const lightR = palette.ambientR * 1.12 + ndlKey * palette.keyIntensity + ndlFill * 0.24 + ndlRim * palette.rimIntensity + fresnelRim * 0.45;
       const lightG = palette.ambientG * 1.12 + ndlKey * palette.keyIntensity + ndlFill * 0.24 + ndlRim * palette.rimIntensity + fresnelRim * 0.45;
@@ -800,14 +873,13 @@ export function renderSoftware3DFrame({
         if (u < 0) u += 1;
         if (vv < 0) vv += 1;
         const sampledV = texFlipY ? 1 - vv : vv;
-        const tx = Math.min(texW - 1, Math.floor(u * texW));
-        const ty = Math.min(texH - 1, Math.floor(sampledV * texH));
+        const tx = Math.min(texW - 1, (u * texW) | 0);
+        const ty = Math.min(texH - 1, (sampledV * texH) | 0);
         const tIdx = (ty * texW + tx) * 4;
         const tr = texPx[tIdx] / 255;
         const tg = texPx[tIdx + 1] / 255;
         const tb = texPx[tIdx + 2] / 255;
         if (tint.multiplySkinTex) {
-          // Preserve facial contours/lips/brows from skin texture while faithfully tracking selected skin tone
           const luma = 0.299 * tr + 0.587 * tg + 0.114 * tb;
           const detailGain = Math.max(0.55, Math.min(1.38, luma / 0.48));
           const texWeight = isDefaultSkin ? 0.48 : 0.30;
@@ -821,17 +893,22 @@ export function renderSoftware3DFrame({
         }
       }
 
-      litR[v] = Math.min(255, Math.pow(Math.max(0, baseR * lightR), 0.9) * 255);
-      litG[v] = Math.min(255, Math.pow(Math.max(0, baseG * lightG), 0.9) * 255);
-      litB[v] = Math.min(255, Math.pow(Math.max(0, baseB * lightB), 0.9) * 255);
+      const lr = baseR * lightR;
+      const lg = baseG * lightG;
+      const lb = baseB * lightB;
+      litR[v] = GAMMA_LUT[lr <= 0 ? 0 : lr >= 1 ? 1024 : (lr * 1024) | 0];
+      litG[v] = GAMMA_LUT[lg <= 0 ? 0 : lg >= 1 ? 1024 : (lg * 1024) | 0];
+      litB[v] = GAMMA_LUT[lb <= 0 ? 0 : lb >= 1 ? 1024 : (lb * 1024) | 0];
     }
 
     // 2. Rasterize front-facing triangles into the Z-buffer
     const cullBack = !tint.doubleSided;
-    for (let t = 0; t < triCount; t++) {
-      const i0 = indices ? indices[t * 3] : t * 3;
-      const i1 = indices ? indices[t * 3 + 1] : t * 3 + 1;
-      const i2 = indices ? indices[t * 3 + 2] : t * 3 + 2;
+    const activeIdx = useLod ? mesh.lodIndices : indices;
+    const activeTriCount = useLod ? mesh.lodTriCount : triCount;
+    for (let t = 0; t < activeTriCount; t++) {
+      const i0 = activeIdx ? activeIdx[t * 3] : t * 3;
+      const i1 = activeIdx ? activeIdx[t * 3 + 1] : t * 3 + 1;
+      const i2 = activeIdx ? activeIdx[t * 3 + 2] : t * 3 + 2;
 
       const z0 = projZ[i0];
       const z1 = projZ[i1];
@@ -889,8 +966,8 @@ export function renderSoftware3DFrame({
   buffers.offscreenCtx.putImageData(buffers.imageData, 0, 0);
   const dstCtx = canvas.getContext('2d');
   if (!dstCtx) return false;
-  dstCtx.imageSmoothingEnabled = true;
-  dstCtx.imageSmoothingQuality = 'high';
+  dstCtx.imageSmoothingEnabled = !interactive;
+  if (!interactive) dstCtx.imageSmoothingQuality = 'high';
   dstCtx.drawImage(buffers.offscreenCanvas, 0, 0, displayW, displayH);
   return true;
 }

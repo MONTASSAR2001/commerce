@@ -17,9 +17,42 @@ import {
   ExternalLink,
   CheckCircle2,
   Sparkles,
-  Tag
+  Tag,
+  Percent,
+  Clock,
+  Ban
 } from 'lucide-react';
-import { uploadMediaAsset } from '../../lib/kronosDataService';
+import { uploadMediaAsset, normalizeAvailabilityStatus } from '../../lib/kronosDataService';
+
+function getEffectiveAvailability(prod) {
+  return normalizeAvailabilityStatus(
+    prod?.availabilityStatus ?? (prod?.inStock === false ? 'out_of_stock' : undefined),
+    prod?.stockQuantity,
+    prod?.badge
+  );
+}
+
+function buildPercentagePromoPatch(item, pct) {
+  const numericPct = Math.max(1, Math.min(95, Number(pct || 0)));
+  const currentOrig = item.originalPrice !== '' && item.originalPrice != null ? Number(item.originalPrice) : null;
+  const basePrice = currentOrig && currentOrig > Number(item.price || 0) ? currentOrig : Number(item.price || 0);
+  const newPrice = Math.max(1, Math.round(basePrice * (1 - numericPct / 100) * 100) / 100);
+  return {
+    price: newPrice,
+    originalPrice: basePrice,
+    discount: `${numericPct}% OFF`
+  };
+}
+
+function buildClearPromoPatch(item) {
+  const currentOrig = item.originalPrice !== '' && item.originalPrice != null ? Number(item.originalPrice) : null;
+  const restoredPrice = currentOrig && currentOrig > 0 ? currentOrig : Number(item.price || 0);
+  return {
+    price: restoredPrice,
+    originalPrice: null,
+    discount: null
+  };
+}
 
 /* ── 1. PRODUCT CATALOG & DYNAMIC PRICING MANAGER ──────────────────────────── */
 export function CatalogManagerTab({
@@ -32,9 +65,13 @@ export function CatalogManagerTab({
   const [search, setSearch] = useState('');
   const [genderFilter, setGenderFilter] = useState('ALL');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [editingPriceMap, setEditingPriceMap] = useState({});
   const [modalProduct, setModalProduct] = useState(null);
   const [isNewModal, setIsNewModal] = useState(false);
+  const [promoModalProd, setPromoModalProd] = useState(null);
+  const [promoDraft, setPromoDraft] = useState({ price: '', originalPrice: '', discount: '', pct: '' });
+  const [busyId, setBusyId] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const categories = useMemo(() => {
@@ -42,11 +79,30 @@ export function CatalogManagerTab({
     return ['ALL', ...Array.from(set)];
   }, [products]);
 
+  const statusCounts = useMemo(() => {
+    let onPromo = 0;
+    let outOfStock = 0;
+    let arrivage = 0;
+    products.forEach((p) => {
+      const av = getEffectiveAvailability(p);
+      if (av === 'out_of_stock') outOfStock++;
+      else if (av === 'arrivage') arrivage++;
+      if (p.discount || (p.originalPrice && Number(p.originalPrice) > Number(p.price))) onPromo++;
+    });
+    return { onPromo, outOfStock, arrivage };
+  }, [products]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return products.filter((p) => {
       if (genderFilter !== 'ALL' && (p.gender || 'MEN').toUpperCase() !== genderFilter) return false;
       if (categoryFilter !== 'ALL' && p.category !== categoryFilter) return false;
+      const av = getEffectiveAvailability(p);
+      const hasPromo = Boolean(p.discount || (p.originalPrice && Number(p.originalPrice) > Number(p.price)));
+      if (statusFilter === 'IN_STOCK' && av !== 'in_stock') return false;
+      if (statusFilter === 'OUT_OF_STOCK' && av !== 'out_of_stock') return false;
+      if (statusFilter === 'ARRIVAGE' && av !== 'arrivage') return false;
+      if (statusFilter === 'ON_PROMO' && !hasPromo) return false;
       if (q) {
         const hit =
           (p.name || '').toLowerCase().includes(q) ||
@@ -56,36 +112,132 @@ export function CatalogManagerTab({
       }
       return true;
     });
-  }, [products, search, genderFilter, categoryFilter]);
+  }, [products, search, genderFilter, categoryFilter, statusFilter]);
 
-  const handleQuickPriceSave = (prod) => {
+  const handleQuickPriceSave = async (prod) => {
     const draft = editingPriceMap[prod.id];
     if (!draft) return;
     const price = Math.max(0, Number(draft.price ?? prod.price));
     const originalPrice =
       draft.originalPrice !== undefined && draft.originalPrice !== ''
         ? Math.max(0, Number(draft.originalPrice))
-        : undefined;
-    let discount = prod.discount;
+        : null;
+    let discount = prod.discount || null;
     if (originalPrice && originalPrice > price) {
       const pct = Math.round(((originalPrice - price) / originalPrice) * 100);
       discount = `${pct}% OFF`;
     } else if (draft.originalPrice === '') {
-      discount = undefined;
+      discount = null;
     }
 
-    onUpdateProduct(prod.id, {
-      price,
-      originalPrice,
-      discount,
-      stockQuantity: draft.stockQuantity != null ? Number(draft.stockQuantity) : prod.stockQuantity
+    const nextStock =
+      draft.stockQuantity != null ? Math.max(0, Number(draft.stockQuantity)) : Number(prod.stockQuantity ?? 50);
+    const prevAv = getEffectiveAvailability(prod);
+    const nextAvailability =
+      nextStock === 0 ? 'out_of_stock' : prevAv === 'out_of_stock' && nextStock > 0 ? 'in_stock' : prevAv;
+
+    setBusyId(prod.id);
+    try {
+      const res = await onUpdateProduct(prod.id, {
+        price,
+        originalPrice,
+        discount,
+        stockQuantity: nextStock,
+        availabilityStatus: nextAvailability,
+        inStock: nextAvailability === 'in_stock' && nextStock > 0
+      });
+      if (res && res.ok === false) return;
+      setEditingPriceMap((prev) => {
+        const next = { ...prev };
+        delete next[prod.id];
+        return next;
+      });
+      onNotify?.(`Synced ${prod.name} (${price.toFixed(2)} DT) to Supabase & storefront`);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleAvailabilityChange = async (prod, nextStatus) => {
+    const currentStock = Number(prod.stockQuantity ?? 50);
+    const nextStock =
+      nextStatus === 'out_of_stock'
+        ? 0
+        : currentStock === 0
+          ? 25
+          : currentStock;
+    const labelMap = {
+      in_stock: 'In Stock',
+      out_of_stock: 'Out of Stock',
+      arrivage: 'Arrivage (Coming Soon)'
+    };
+    setBusyId(prod.id);
+    try {
+      const res = await onUpdateProduct(prod.id, {
+        availabilityStatus: nextStatus,
+        stockQuantity: nextStock,
+        inStock: nextStatus === 'in_stock' && nextStock > 0
+      });
+      if (res && res.ok === false) return;
+      onNotify?.(`${prod.name} marked ${labelMap[nextStatus]} live on storefront`);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const openPromoModal = (prod) => {
+    const orig = prod.originalPrice && Number(prod.originalPrice) > 0 ? Number(prod.originalPrice) : Number(prod.price || 0);
+    const pct =
+      orig > Number(prod.price || 0)
+        ? String(Math.round(((orig - Number(prod.price || 0)) / orig) * 100))
+        : '20';
+    setPromoModalProd(prod);
+    setPromoDraft({
+      price: String(prod.price ?? 0),
+      originalPrice: prod.originalPrice ? String(prod.originalPrice) : String(prod.price ?? 0),
+      discount: prod.discount || '',
+      pct
     });
-    setEditingPriceMap((prev) => {
-      const next = { ...prev };
-      delete next[prod.id];
-      return next;
-    });
-    onNotify?.(`Updated pricing for ${prod.name} (${price.toFixed(2)} DT)`);
+  };
+
+  const handleApplyPromoSave = async (e) => {
+    e.preventDefault();
+    if (!promoModalProd) return;
+    const price = Math.max(0.5, Number(promoDraft.price || 0));
+    const orig =
+      promoDraft.originalPrice !== '' && Number(promoDraft.originalPrice) > price
+        ? Number(promoDraft.originalPrice)
+        : null;
+    let discount = promoDraft.discount.trim() || null;
+    if (!discount && orig && orig > price) {
+      discount = `${Math.round(((orig - price) / orig) * 100)}% OFF`;
+    }
+    setBusyId(promoModalProd.id);
+    try {
+      const res = await onUpdateProduct(promoModalProd.id, {
+        price,
+        originalPrice: orig,
+        discount
+      });
+      if (res && res.ok === false) return;
+      onNotify?.(`Promo saved for ${promoModalProd.name}: ${discount || `${price} DT`}`);
+      setPromoModalProd(null);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleClearPromoItem = async (prod) => {
+    const patch = buildClearPromoPatch(prod);
+    setBusyId(prod.id);
+    try {
+      const res = await onUpdateProduct(prod.id, patch);
+      if (res && res.ok === false) return;
+      onNotify?.(`Promo removed from ${prod.name} (restored ${patch.price.toFixed(2)} DT)`);
+      setPromoModalProd(null);
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const openNewProductModal = () => {
@@ -108,6 +260,9 @@ export function CatalogManagerTab({
       composition: '100% Cotton',
       garmentType: 'top',
       stockQuantity: 40,
+      availabilityStatus: 'in_stock',
+      arrivalNote: '',
+      inStock: true,
       isPublished: true
     });
   };
@@ -117,6 +272,8 @@ export function CatalogManagerTab({
     setModalProduct({
       ...prod,
       originalPrice: prod.originalPrice ?? '',
+      availabilityStatus: getEffectiveAvailability(prod),
+      arrivalNote: prod.arrivalNote || '',
       colorsText: (prod.colors || []).join(', '),
       sizesText: (prod.sizes || ['S', 'M', 'L', 'XL']).join(', '),
       galleryText: (prod.images || [prod.img].filter(Boolean)).join('\n')
@@ -160,7 +317,7 @@ export function CatalogManagerTab({
     }
   };
 
-  const handleSaveModal = (e) => {
+  const handleSaveModal = async (e) => {
     e.preventDefault();
     if (!modalProduct?.name?.trim()) return;
 
@@ -188,7 +345,19 @@ export function CatalogManagerTab({
     let discount = modalProduct.discount?.trim() || undefined;
     if (orig && orig > price && !discount) {
       discount = `${Math.round(((orig - price) / orig) * 100)}% OFF`;
+    } else if (!orig && !modalProduct.discount?.trim()) {
+      discount = undefined;
     }
+
+    const availabilityStatus = normalizeAvailabilityStatus(
+      modalProduct.availabilityStatus,
+      modalProduct.stockQuantity,
+      modalProduct.badge
+    );
+    const stockQuantity =
+      availabilityStatus === 'out_of_stock'
+        ? 0
+        : Math.max(0, Number(modalProduct.stockQuantity ?? 40));
 
     // Keep colorVariants[0] synchronized so ProductCard and ZaraProductDetailPage
     // immediately render the updated primary & gallery images instead of old variant URLs.
@@ -207,8 +376,12 @@ export function CatalogManagerTab({
     const payload = {
       ...modalProduct,
       price,
-      originalPrice: orig,
-      discount,
+      originalPrice: orig ?? null,
+      discount: discount ?? null,
+      availabilityStatus,
+      arrivalNote: (modalProduct.arrivalNote || '').trim(),
+      stockQuantity,
+      inStock: availabilityStatus === 'in_stock' && stockQuantity > 0,
       img: primaryImg,
       images: finalImages,
       colorVariants: syncedVariants,
@@ -225,14 +398,21 @@ export function CatalogManagerTab({
     delete payload.sizesText;
     delete payload.galleryText;
 
-    if (isNewModal) {
-      onAddProduct(payload);
-      onNotify?.(`Added new garment "${payload.name}"`);
-    } else {
-      onUpdateProduct(payload.id, payload);
-      onNotify?.(`Saved changes to "${payload.name}"`);
+    setBusyId(payload.id);
+    try {
+      const res = isNewModal
+        ? await onAddProduct(payload)
+        : await onUpdateProduct(payload.id, payload);
+      if (res && res.ok === false) return;
+      onNotify?.(
+        isNewModal
+          ? `Published new garment "${payload.name}" to Supabase & storefront`
+          : `Saved changes to "${payload.name}" live on storefront`
+      );
+      setModalProduct(null);
+    } finally {
+      setBusyId(null);
     }
-    setModalProduct(null);
   };
 
   return (
@@ -286,6 +466,30 @@ export function CatalogManagerTab({
         </button>
       </div>
 
+      {/* Availability & Promo Quick Filter Strip */}
+      <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono">
+        {[
+          { id: 'ALL', label: `ALL (${products.length})` },
+          { id: 'IN_STOCK', label: 'IN STOCK' },
+          { id: 'ON_PROMO', label: `ON PROMO (${statusCounts.onPromo})` },
+          { id: 'ARRIVAGE', label: `ARRIVAGE (${statusCounts.arrivage})` },
+          { id: 'OUT_OF_STOCK', label: `OUT OF STOCK (${statusCounts.outOfStock})` }
+        ].map((chip) => (
+          <button
+            key={chip.id}
+            type="button"
+            onClick={() => setStatusFilter(chip.id)}
+            className={`px-3 py-1 rounded-[16px] border-[1.2px] border-[#171717] font-bold transition-all cursor-pointer ${
+              statusFilter === chip.id
+                ? 'bg-[#171717] text-white'
+                : 'bg-white text-[#171717]/80 hover:bg-[#f7efe9]'
+            }`}
+          >
+            {chip.label}
+          </button>
+        ))}
+      </div>
+
       {/* Products Table */}
       <div className="overflow-x-auto rounded-[12px] border-[1.5px] border-[#171717] bg-white">
         <table className="w-full text-left border-collapse">
@@ -294,7 +498,8 @@ export function CatalogManagerTab({
               <th className="py-3 px-3.5">Garment</th>
               <th className="py-3 px-3">Section / Cat</th>
               <th className="py-3 px-3">Price (DT)</th>
-              <th className="py-3 px-3">Original (DT)</th>
+              <th className="py-3 px-3">Original / Promo</th>
+              <th className="py-3 px-3">Availability</th>
               <th className="py-3 px-3">Stock</th>
               <th className="py-3 px-3">Status</th>
               <th className="py-3 px-3.5 text-right">Actions</th>
@@ -305,9 +510,11 @@ export function CatalogManagerTab({
               const draft = editingPriceMap[prod.id];
               const isDirty = Boolean(draft);
               const thumb = prod.img || prod.images?.[0] || prod.colorVariants?.[0]?.images?.[0];
+              const avStatus = getEffectiveAvailability(prod);
+              const isBusy = busyId === prod.id;
 
               return (
-                <tr key={prod.id} className="hover:bg-[#fdfbf9] transition-colors">
+                <tr key={prod.id} className={`hover:bg-[#fdfbf9] transition-colors ${isBusy ? 'opacity-65' : ''}`}>
                   <td className="py-3 px-3.5">
                     <div className="flex items-center gap-3 min-w-[230px]">
                       <img
@@ -319,11 +526,21 @@ export function CatalogManagerTab({
                         <p className="font-bold text-[#171717] truncate max-w-[220px]">
                           {prod.name}
                         </p>
-                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] font-mono text-[#171717]/60">
+                        <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[10px] font-mono text-[#171717]/60">
                           <span>#{prod.id}</span>
                           {prod.discount && (
                             <span className="px-1.5 py-0.2 bg-[#EA301F]/15 text-[#EA301F] font-bold rounded">
                               {prod.discount}
+                            </span>
+                          )}
+                          {avStatus === 'out_of_stock' && (
+                            <span className="px-1.5 py-0.2 bg-red-100 text-red-700 font-bold rounded">
+                              OUT OF STOCK
+                            </span>
+                          )}
+                          {avStatus === 'arrivage' && (
+                            <span className="px-1.5 py-0.2 bg-amber-100 text-amber-800 font-bold rounded">
+                              ARRIVAGE{prod.arrivalNote ? ` · ${prod.arrivalNote}` : ''}
                             </span>
                           )}
                         </div>
@@ -367,24 +584,60 @@ export function CatalogManagerTab({
                   </td>
 
                   <td className="py-3 px-3">
-                    <input
-                      type="number"
-                      step="0.5"
-                      placeholder="—"
-                      value={draft?.originalPrice ?? (prod.originalPrice ?? '')}
-                      onChange={(e) =>
-                        setEditingPriceMap((prev) => ({
-                          ...prev,
-                          [prod.id]: { ...prev[prod.id], originalPrice: e.target.value }
-                        }))
-                      }
-                      className="w-24 px-2 py-1.5 rounded-[8px] border-[1.2px] border-[#171717]/40 font-mono text-xs bg-white focus:outline-none focus:border-[#171717]"
-                    />
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        step="0.5"
+                        placeholder="—"
+                        value={draft?.originalPrice ?? (prod.originalPrice ?? '')}
+                        onChange={(e) =>
+                          setEditingPriceMap((prev) => ({
+                            ...prev,
+                            [prod.id]: { ...prev[prod.id], originalPrice: e.target.value }
+                          }))
+                        }
+                        className="w-20 px-2 py-1.5 rounded-[8px] border-[1.2px] border-[#171717]/40 font-mono text-xs bg-white focus:outline-none focus:border-[#171717]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => openPromoModal(prod)}
+                        disabled={isBusy}
+                        className={`inline-flex items-center gap-1 px-2 py-1.5 rounded-[8px] border-[1.2px] border-[#171717] text-[10px] font-mono font-bold cursor-pointer whitespace-nowrap ${
+                          prod.discount
+                            ? 'bg-[#EA301F] text-white'
+                            : 'bg-[#fff3e6] text-[#9a3412] hover:bg-[#ff6f1e] hover:text-white'
+                        }`}
+                        title="Configure item promo (% OFF / Flash Price)"
+                      >
+                        <Percent className="w-3 h-3" />
+                        <span>{prod.discount ? 'Edit' : 'Promo'}</span>
+                      </button>
+                    </div>
+                  </td>
+
+                  <td className="py-3 px-3">
+                    <select
+                      value={avStatus}
+                      disabled={isBusy}
+                      onChange={(e) => handleAvailabilityChange(prod, e.target.value)}
+                      className={`px-2.5 py-1.5 rounded-[12px] border-[1.2px] border-[#171717] text-[10px] font-mono font-bold uppercase cursor-pointer focus:outline-none ${
+                        avStatus === 'out_of_stock'
+                          ? 'bg-red-100 text-red-800'
+                          : avStatus === 'arrivage'
+                            ? 'bg-amber-100 text-amber-900'
+                            : 'bg-emerald-100 text-emerald-900'
+                      }`}
+                    >
+                      <option value="in_stock">IN STOCK</option>
+                      <option value="out_of_stock">OUT OF STOCK</option>
+                      <option value="arrivage">ARRIVAGE</option>
+                    </select>
                   </td>
 
                   <td className="py-3 px-3">
                     <input
                       type="number"
+                      min="0"
                       value={draft?.stockQuantity ?? (prod.stockQuantity ?? 50)}
                       onChange={(e) =>
                         setEditingPriceMap((prev) => ({
@@ -398,9 +651,23 @@ export function CatalogManagerTab({
 
                   <td className="py-3 px-3">
                     <button
-                      onClick={() =>
-                        onUpdateProduct(prod.id, { isPublished: prod.isPublished === false })
-                      }
+                      disabled={isBusy}
+                      onClick={async () => {
+                        setBusyId(prod.id);
+                        try {
+                          const res = await onUpdateProduct(prod.id, {
+                            isPublished: prod.isPublished === false
+                          });
+                          if (res && res.ok === false) return;
+                          onNotify?.(
+                            prod.isPublished === false
+                              ? `${prod.name} is now LIVE on storefront`
+                              : `${prod.name} hidden from storefront`
+                          );
+                        } finally {
+                          setBusyId(null);
+                        }
+                      }}
                       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-[16px] border-[1.2px] border-[#171717] text-[10px] font-bold cursor-pointer ${
                         prod.isPublished !== false
                           ? 'bg-[#22c55e]/15 text-[#166534]'
@@ -423,6 +690,7 @@ export function CatalogManagerTab({
                     <div className="inline-flex items-center gap-1.5">
                       {isDirty && (
                         <button
+                          disabled={isBusy}
                           onClick={() => handleQuickPriceSave(prod)}
                           className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-[14px] border-[1.2px] border-[#171717] bg-[#22c55e] text-white text-[10px] font-bold shadow-[1px_1px_0px_#171717] cursor-pointer"
                           title="Save price & stock changes"
@@ -431,17 +699,26 @@ export function CatalogManagerTab({
                         </button>
                       )}
                       <button
+                        disabled={isBusy}
                         onClick={() => openEditModal(prod)}
                         className="p-1.5 rounded-[10px] border-[1.2px] border-[#171717] bg-[#f7efe9] hover:bg-[#ff6f1e] hover:text-white transition-colors cursor-pointer"
-                        title="Edit details, photos & variants"
+                        title="Edit details, promo, availability & photos"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => {
-                          if (window.confirm(`Delete "${prod.name}" from KRONOS catalog?`)) {
-                            onDeleteProduct(prod.id);
-                            onNotify?.(`Removed ${prod.name}`);
+                        disabled={isBusy}
+                        onClick={async () => {
+                          if (!window.confirm(`Delete "${prod.name}" from Supabase & KRONOS storefront?`)) {
+                            return;
+                          }
+                          setBusyId(prod.id);
+                          try {
+                            const res = await onDeleteProduct(prod.id);
+                            if (res && res.ok === false) return;
+                            onNotify?.(`Deleted "${prod.name}" from Supabase & main website`);
+                          } finally {
+                            setBusyId(null);
                           }
                         }}
                         className="p-1.5 rounded-[10px] border-[1.2px] border-[#171717] bg-white hover:bg-red-50 text-red-600 transition-colors cursor-pointer"
@@ -526,7 +803,7 @@ export function CatalogManagerTab({
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <label className="font-bold block mb-1">Price (DT) *</label>
+                  <label className="font-bold block mb-1">Selling Price (DT) *</label>
                   <input
                     type="number"
                     step="0.5"
@@ -537,7 +814,7 @@ export function CatalogManagerTab({
                   />
                 </div>
                 <div>
-                  <label className="font-bold block mb-1">Original Price</label>
+                  <label className="font-bold block mb-1">Original Price (Was)</label>
                   <input
                     type="number"
                     step="0.5"
@@ -571,6 +848,132 @@ export function CatalogManagerTab({
                     <option value="bottom">Bottom / Jeans</option>
                     <option value="shoes">Shoes / Boots</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Per-Item Promo Builder */}
+              <div className="p-3.5 rounded-[12px] border-[1.5px] border-[#171717] bg-[#fff3e6] space-y-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-bold flex items-center gap-1.5 text-[#9a3412]">
+                    <Tag className="w-3.5 h-3.5" />
+                    <span>Per-Item Promo &amp; Discount</span>
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1">
+                    {[10, 20, 30, 50].map((pct) => (
+                      <button
+                        key={pct}
+                        type="button"
+                        onClick={() =>
+                          setModalProduct((prev) => ({
+                            ...prev,
+                            ...buildPercentagePromoPatch(prev, pct)
+                          }))
+                        }
+                        className="px-2 py-1 rounded-[8px] border border-[#171717] bg-white hover:bg-[#EA301F] hover:text-white font-mono text-[10px] font-bold cursor-pointer"
+                      >
+                        -{pct}%
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setModalProduct((prev) => ({
+                          ...prev,
+                          ...buildClearPromoPatch(prev),
+                          originalPrice: '',
+                          discount: ''
+                        }))
+                      }
+                      className="px-2 py-1 rounded-[8px] border border-[#171717] bg-[#fdfbf9] hover:bg-gray-200 font-mono text-[10px] font-bold cursor-pointer"
+                    >
+                      Clear Promo
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold block mb-1">Promo Label / Badge Text</label>
+                    <input
+                      value={modalProduct.discount || ''}
+                      onChange={(e) =>
+                        setModalProduct({ ...modalProduct, discount: e.target.value })
+                      }
+                      placeholder="e.g. 20% OFF, FLASH PROMO, VIP -50 DT"
+                      className="w-full px-3 py-1.5 rounded-[8px] border-[1.2px] border-[#171717] bg-white font-mono"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <p className="text-[11px] font-mono text-[#171717]/80 pb-1.5">
+                      Preview: <strong className="text-[#EA301F]">{Number(modalProduct.price || 0).toFixed(2)} DT</strong>
+                      {modalProduct.originalPrice && Number(modalProduct.originalPrice) > Number(modalProduct.price || 0)
+                        ? ` (was ${Number(modalProduct.originalPrice).toFixed(2)} DT)`
+                        : ' (standard price)'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Availability Status (In Stock / Out of Stock / Arrivage) */}
+              <div className="p-3.5 rounded-[12px] border-[1.5px] border-[#171717] bg-white space-y-2.5">
+                <label className="font-bold block">Storefront Availability Status</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'in_stock', label: 'In Stock', activeCls: 'bg-emerald-600 text-white border-[#171717]', Icon: CheckCircle2 },
+                    { id: 'out_of_stock', label: 'Out of Stock', activeCls: 'bg-red-600 text-white border-[#171717]', Icon: Ban },
+                    { id: 'arrivage', label: 'En Arrivage', activeCls: 'bg-amber-500 text-white border-[#171717]', Icon: Clock }
+                  ].map((opt) => {
+                    const active = (modalProduct.availabilityStatus || 'in_stock') === opt.id;
+                    const IconComp = opt.Icon;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() =>
+                          setModalProduct((prev) => ({
+                            ...prev,
+                            availabilityStatus: opt.id,
+                            stockQuantity:
+                              opt.id === 'out_of_stock'
+                                ? 0
+                                : Number(prev.stockQuantity || 0) === 0
+                                  ? 25
+                                  : prev.stockQuantity
+                          }))
+                        }
+                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-[10px] border-[1.5px] font-mono font-bold text-[11px] cursor-pointer transition-all ${
+                          active ? opt.activeCls : 'border-[#171717]/30 bg-[#fdfbf9] text-[#171717] hover:border-[#171717]'
+                        }`}
+                      >
+                        <IconComp className="w-3.5 h-3.5" />
+                        <span>{opt.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="font-bold block mb-1">Stock Quantity</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={modalProduct.stockQuantity ?? 40}
+                      onChange={(e) =>
+                        setModalProduct({ ...modalProduct, stockQuantity: e.target.value })
+                      }
+                      className="w-full px-3 py-1.5 rounded-[8px] border-[1.2px] border-[#171717] bg-white font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold block mb-1">Arrivage / Restock Note (Optional)</label>
+                    <input
+                      value={modalProduct.arrivalNote || ''}
+                      onChange={(e) =>
+                        setModalProduct({ ...modalProduct, arrivalNote: e.target.value })
+                      }
+                      placeholder="e.g. Arrivage this Friday / Restock Dec 5"
+                      className="w-full px-3 py-1.5 rounded-[8px] border-[1.2px] border-[#171717] bg-white"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -661,9 +1064,157 @@ export function CatalogManagerTab({
                 >
                   Cancel
                 </button>
-                <button type="submit" className="superr-pill-btn-primary">
+                <button
+                  type="submit"
+                  disabled={busyId === modalProduct.id}
+                  className="superr-pill-btn-primary"
+                >
                   <Check className="w-4 h-4" />
-                  <span>{isNewModal ? 'Publish Product' : 'Save Changes'}</span>
+                  <span>
+                    {busyId === modalProduct.id
+                      ? 'Syncing...'
+                      : isNewModal
+                        ? 'Publish Product'
+                        : 'Save Changes'}
+                  </span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Per-Item Promo Modal */}
+      {promoModalProd && (
+        <div
+          onClick={() => setPromoModalProd(null)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-[#fdfbf9] border-[2px] border-[#171717] rounded-[16px] shadow-[6px_6px_0px_#171717] p-5 font-geist text-xs"
+          >
+            <div className="flex items-center justify-between pb-3 border-b-[1.5px] border-[#171717]">
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase text-[#c2410c]">
+                  Dynamic Per-Item Promo
+                </span>
+                <h4 className="font-gelica text-xl font-bold text-[#2b1a07] truncate max-w-[300px]">
+                  {promoModalProd.name}
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPromoModalProd(null)}
+                className="p-1.5 rounded-[8px] border-[1.5px] border-[#171717] bg-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleApplyPromoSave} className="mt-4 space-y-4">
+              <div>
+                <label className="font-bold block mb-1.5">Quick % Discount Presets</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[10, 15, 20, 30, 40, 50].map((pct) => (
+                    <button
+                      key={pct}
+                      type="button"
+                      onClick={() => {
+                        const patch = buildPercentagePromoPatch(
+                          {
+                            price: promoDraft.price,
+                            originalPrice: promoDraft.originalPrice
+                          },
+                          pct
+                        );
+                        setPromoDraft({
+                          price: String(patch.price),
+                          originalPrice: String(patch.originalPrice),
+                          discount: patch.discount,
+                          pct: String(pct)
+                        });
+                      }}
+                      className={`px-3 py-1.5 rounded-[10px] border-[1.2px] border-[#171717] font-mono font-bold cursor-pointer ${
+                        Number(promoDraft.pct) === pct && promoDraft.discount
+                          ? 'bg-[#EA301F] text-white'
+                          : 'bg-white hover:bg-[#fff3e6]'
+                      }`}
+                    >
+                      -{pct}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold block mb-1">Original Price (DT)</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="1"
+                    value={promoDraft.originalPrice}
+                    onChange={(e) =>
+                      setPromoDraft((prev) => ({ ...prev, originalPrice: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 rounded-[8px] border-[1.5px] border-[#171717] bg-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1">Promo Price (DT) *</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    required
+                    value={promoDraft.price}
+                    onChange={(e) => {
+                      const nextP = Number(e.target.value || 0);
+                      const orig = Number(promoDraft.originalPrice || 0);
+                      const autoDisc =
+                        orig > nextP && nextP > 0
+                          ? `${Math.round(((orig - nextP) / orig) * 100)}% OFF`
+                          : promoDraft.discount;
+                      setPromoDraft((prev) => ({
+                        ...prev,
+                        price: e.target.value,
+                        discount: autoDisc
+                      }));
+                    }}
+                    className="w-full px-3 py-2 rounded-[8px] border-[1.5px] border-[#171717] bg-white font-mono font-bold text-[#EA301F]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold block mb-1">Promo Badge Label</label>
+                <input
+                  value={promoDraft.discount}
+                  onChange={(e) =>
+                    setPromoDraft((prev) => ({ ...prev, discount: e.target.value }))
+                  }
+                  placeholder="20% OFF / FLASH PROMO / VIP"
+                  className="w-full px-3 py-2 rounded-[8px] border-[1.5px] border-[#171717] bg-white font-mono font-bold uppercase"
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#171717]/15">
+                <button
+                  type="button"
+                  disabled={busyId === promoModalProd.id}
+                  onClick={() => handleClearPromoItem(promoModalProd)}
+                  className="px-3 py-2 rounded-[12px] border-[1.2px] border-[#171717] bg-white hover:bg-red-50 text-red-700 font-bold cursor-pointer"
+                >
+                  Remove Promo
+                </button>
+                <button
+                  type="submit"
+                  disabled={busyId === promoModalProd.id}
+                  className="superr-pill-btn-primary"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>{busyId === promoModalProd.id ? 'Syncing...' : 'Apply Promo Live'}</span>
                 </button>
               </div>
             </form>

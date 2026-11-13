@@ -84,7 +84,7 @@ function loadStoredAdminTrace() {
     return null;
   }
 }
-import { KronosLogo } from '../RawlineAIChatbot';
+import { KronosLogo } from '../KronosLogo';
 import EnterpriseGraphCanvas from './EnterpriseGraphCanvas';
 
 const NODE_STYLES = {

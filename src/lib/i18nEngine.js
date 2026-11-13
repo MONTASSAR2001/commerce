@@ -88,7 +88,9 @@ export const UI_TRANSLATIONS = {
       all: 'ALL',
       man: 'MAN',
       woman: 'WOMAN',
-      allCategories: 'ALL CATEGORIES'
+      allCategories: 'ALL CATEGORIES',
+      promoOnly: 'PROMO',
+      arrivageOnly: 'ARRIVAGE'
     },
     product: {
       quickView: 'QUICK VIEW',
@@ -101,6 +103,11 @@ export const UI_TRANSLATIONS = {
       color: 'Color',
       details: 'Garment Architecture & Fabric',
       stockAvailable: 'Ready to ship',
+      outOfStock: 'OUT OF STOCK',
+      outOfStockDesc: 'Currently sold out — check back soon.',
+      arrivage: 'ARRIVAGE',
+      arrivageSoon: 'NEW ARRIVAGE · COMING SOON',
+      arrivageDesc: 'Arriving soon — preview details & 3D virtual fit.',
       viewDetails: 'View Full Dossier',
       sizeGuide: '3D Smart Size Finder',
       backToCollection: 'BACK TO COLLECTION',
@@ -294,7 +301,9 @@ export const UI_TRANSLATIONS = {
       all: 'TOUT',
       man: 'HOMME',
       woman: 'FEMME',
-      allCategories: 'TOUTES CATÉGORIES'
+      allCategories: 'TOUTES CATÉGORIES',
+      promoOnly: 'PROMO',
+      arrivageOnly: 'ARRIVAGE'
     },
     product: {
       quickView: 'APERÇU RAPIDE',
@@ -307,6 +316,11 @@ export const UI_TRANSLATIONS = {
       color: 'Coloris',
       details: 'Coupe, Matière & Finitions',
       stockAvailable: 'Expédition sous 24–48h',
+      outOfStock: 'RUPTURE DE STOCK',
+      outOfStockDesc: 'Actuellement épuisé — bientôt de retour.',
+      arrivage: 'ARRIVAGE',
+      arrivageSoon: 'EN ARRIVAGE · BIENTÔT DISPONIBLE',
+      arrivageDesc: 'En cours d’arrivage — essayez la coupe en 3D.',
       viewDetails: 'Voir la fiche complète',
       sizeGuide: 'Guide des tailles 3D',
       backToCollection: 'RETOUR À LA COLLECTION',
@@ -500,7 +514,9 @@ export const UI_TRANSLATIONS = {
       all: 'الكل',
       man: 'رجالي',
       woman: 'نسائي',
-      allCategories: 'كل الفئات'
+      allCategories: 'كل الفئات',
+      promoOnly: 'تخفيضات',
+      arrivageOnly: 'وصول قريب'
     },
     product: {
       quickView: 'معاينة سريعة',
@@ -513,6 +529,11 @@ export const UI_TRANSLATIONS = {
       color: 'اللون',
       details: 'تفاصيل القصة والخامة',
       stockAvailable: 'جاهز للشحن السريع',
+      outOfStock: 'نفد المخزون',
+      outOfStockDesc: 'غير متوفر حالياً — سيتوفر قريباً.',
+      arrivage: 'وصول قريباً',
+      arrivageSoon: 'قيد التوريد · متوفر قريباً',
+      arrivageDesc: 'قيد التوريد — جرّب القطعة في مختبر القياس 3D.',
       viewDetails: 'عرض التفاصيل الكاملة',
       sizeGuide: 'مرشد المقاسات ثلاثي الأبعاد',
       backToCollection: 'العودة إلى المجموعة',

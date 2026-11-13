@@ -32,7 +32,7 @@
  *   14. Modals: Smart Currency Country Selector, Product Quick View, Search, Wishlist Drawer, Cart Drawer
  */
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import {
   Heart,
   Search,
@@ -50,9 +50,12 @@ import {
   Moon,
   Sun
 } from 'lucide-react';
-import Rawline3DFittingLab from './Rawline3DFittingLab';
-import RawlineAIChatbot, { KronosLogo } from './RawlineAIChatbot';
+import { KronosLogo } from './KronosLogo';
 import ZaraProductDetailPage from './ZaraProductDetailPage';
+const Rawline3DFittingLab = lazy(() => import('./Rawline3DFittingLab'));
+const RawlineAIChatbot = lazy(() => import('./RawlineAIChatbot'));
+const prefetchFittingLab = () => import('./Rawline3DFittingLab');
+const prefetchAiChatbot = () => import('./RawlineAIChatbot');
 import {
   SUPPORTED_LANGUAGES,
   createTranslator,
@@ -67,41 +70,56 @@ import { sanitizeSafeExternalUrl } from '../lib/urlSafety';
 import {
   submitCustomerOrder,
   validatePromoCode,
-  subscribeNewsletter
+  subscribeNewsletter,
+  normalizeAvailabilityStatus
 } from '../lib/kronosDataService';
 
-// Custom hook to calculate scroll progress of an element in viewport (0 to 1)
-function useElementScrollProgress(ref) {
-  const [progress, setProgress] = useState(0);
-
+// Zero-render GPU scroll driver: sets CSS custom property `--scroll-p` directly on section DOM node without re-rendering React tree
+function useElementScrollProgressCss(ref) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
     let rafId = null;
-    const handleScroll = () => {
-      if (rafId) return;
-      rafId = requestAnimationFrame(() => {
-        const rect = el.getBoundingClientRect();
-        const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-        // 0 when top of element enters viewport bottom, 1 when element is centered/fully visible
-        const totalDistance = windowHeight + rect.height;
-        const currentDistance = windowHeight - rect.top;
-        const rawProgress = Math.max(0, Math.min(1, currentDistance / totalDistance));
-        setProgress(rawProgress);
-        rafId = null;
-      });
+    let isVisible = false;
+
+    const updateVar = () => {
+      rafId = null;
+      const rect = el.getBoundingClientRect();
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+      const totalDistance = windowHeight + rect.height;
+      const currentDistance = windowHeight - rect.top;
+      const rawProgress = Math.max(0, Math.min(1, currentDistance / totalDistance));
+      el.style.setProperty('--scroll-p', rawProgress.toFixed(4));
     };
 
+    const handleScroll = () => {
+      if (!isVisible || rafId) return;
+      rafId = requestAnimationFrame(updateVar);
+    };
+
+    let io = null;
+    if (typeof IntersectionObserver !== 'undefined') {
+      io = new IntersectionObserver(
+        (entries) => {
+          isVisible = Boolean(entries[0]?.isIntersecting);
+          if (isVisible) updateVar();
+        },
+        { rootMargin: '150px 0px' }
+      );
+      io.observe(el);
+    } else {
+      isVisible = true;
+    }
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    updateVar();
     return () => {
+      if (io) io.disconnect();
       window.removeEventListener('scroll', handleScroll);
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, [ref]);
-
-  return progress;
 }
 
 // Color Name to Hex Palette Mapper for Streetwear Swatches
@@ -172,138 +190,170 @@ function ZaraProductCard({
       className="kronos-product-card group relative bg-[#111111] hover:bg-[#151519] flex flex-col justify-between cursor-pointer transition-all duration-300 border border-[#222228] hover:border-[#363642]"
     >
       {/* Top Studio 2:3 Portrait Photography Frame (Exact Zara Style) */}
-      <div className="relative w-full aspect-[2/3] overflow-hidden bg-[#ECECE9]">
-        <img
-          src={currentImg}
-          alt={`${prod.name} - ${activeVariant?.name || ''}`}
-          loading="lazy"
-          className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.03]"
-        />
-
-        {/* Top-Left: Wishlist & Gender Tag */}
-        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10 pointer-events-none">
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleWishlist(prod.id);
-              }}
-              className="w-7 h-7 rounded-full bg-black/55 backdrop-blur-md text-white hover:text-[#EA301F] flex items-center justify-center transition-colors cursor-pointer"
-              title="Save to Wishlist"
-            >
-              <Heart className={`w-3.5 h-3.5 ${wishlist.includes(prod.id) ? 'fill-[#EA301F] text-[#EA301F]' : ''}`} />
-            </button>
-            <span className={`text-[9px] font-mono font-bold tracking-widest px-2 py-0.5 rounded backdrop-blur-md ${
-              prod.gender === 'WOMEN'
-                ? 'bg-[#EA301F]/85 text-white'
-                : 'bg-black/75 text-[#FFFFE3]'
-            }`}>
-              {localizeGender(prod.gender, language)}
-            </span>
-          </div>
-
-          {prod.discount ? (
-            <span className="bg-[#EA301F] text-white text-[10px] font-azeret font-bold px-2 py-0.5 uppercase tracking-wider shadow">
-              {prod.discount}
-            </span>
-          ) : prod.badge ? (
-            <span className="bg-black/65 backdrop-blur-md text-[#FFFFE3] text-[9px] font-mono font-bold px-2 py-0.5 uppercase tracking-widest">
-              {prod.badge}
-            </span>
-          ) : null}
-        </div>
-
-        {/* Multi-Angle Studio Navigation Arrows on Hover */}
-        {gallery.length > 1 && (
+      {(() => {
+        const availabilityStatus = normalizeAvailabilityStatus(
+          prod.availabilityStatus ?? (prod.inStock === false ? 'out_of_stock' : undefined),
+          prod.stockQuantity ?? prod.stockCount,
+          prod.badge
+        );
+        const isOutOfStock = availabilityStatus === 'out_of_stock';
+        const isArrivage = availabilityStatus === 'arrivage';
+        const isPurchasable = !isOutOfStock && !isArrivage;
+        return (
           <>
-            <button
-              onClick={prevImg}
-              className="opacity-0 group-hover:opacity-100 absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all z-10 cursor-pointer"
-              title="Previous angle"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={nextImg}
-              className="opacity-0 group-hover:opacity-100 absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all z-10 cursor-pointer"
-              title="Next angle"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </>
-        )}
+            <div className="relative w-full aspect-[2/3] overflow-hidden bg-[#ECECE9]">
+              <img
+                src={currentImg}
+                alt={`${prod.name} - ${activeVariant?.name || ''}`}
+                loading="lazy"
+                className={`w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.03] ${isOutOfStock ? 'opacity-65 grayscale-[30%]' : ''}`}
+              />
 
-        {/* Bottom Overlay Bar: Angle Dots & Zara '+' Quick Size Trigger */}
-        {!quickSizeOpen && (
-          <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between z-10">
-            <div className="flex items-center gap-1 bg-black/45 backdrop-blur-sm px-2 py-1 rounded-full">
-              {gallery.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveImgIdx(i);
-                  }}
-                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                    i === activeImgIdx ? 'w-4 bg-white' : 'w-1.5 bg-white/45 hover:bg-white/80'
-                  }`}
-                  title={`View ${i + 1}`}
-                />
-              ))}
-            </div>
+              {/* Top-Left: Wishlist & Gender Tag + Top-Right Availability & Promo Tags */}
+              <div className="absolute top-2.5 left-2.5 right-2.5 flex items-start justify-between gap-1.5 z-10 pointer-events-none">
+                <div className="flex items-center gap-1.5 pointer-events-auto">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleWishlist(prod.id);
+                    }}
+                    className="w-7 h-7 rounded-full bg-black/55 backdrop-blur-md text-white hover:text-[#EA301F] flex items-center justify-center transition-colors cursor-pointer"
+                    title="Save to Wishlist"
+                  >
+                    <Heart className={`w-3.5 h-3.5 ${wishlist.includes(prod.id) ? 'fill-[#EA301F] text-[#EA301F]' : ''}`} />
+                  </button>
+                  <span className={`text-[9px] font-mono font-bold tracking-widest px-2 py-0.5 rounded backdrop-blur-md ${
+                    prod.gender === 'WOMEN'
+                      ? 'bg-[#EA301F]/85 text-white'
+                      : 'bg-black/75 text-[#FFFFE3]'
+                  }`}>
+                    {localizeGender(prod.gender, language)}
+                  </span>
+                </div>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setQuickSizeOpen(true);
-              }}
-              className="w-7 h-7 rounded-full bg-white/90 hover:bg-[#EA301F] text-[#111111] hover:text-white flex items-center justify-center shadow-md transition-colors cursor-pointer"
-              title="Quick Add Size"
-            >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
-            </button>
-          </div>
-        )}
+                <div className="flex flex-col items-end gap-1">
+                  {isOutOfStock && (
+                    <span className="bg-[#111111]/90 border border-white/25 text-white text-[9px] font-azeret font-bold px-2 py-0.5 uppercase tracking-wider shadow">
+                      {t('product.outOfStock')}
+                    </span>
+                  )}
+                  {isArrivage && (
+                    <span className="bg-[#f59e0b] text-[#111111] text-[9px] font-azeret font-bold px-2 py-0.5 uppercase tracking-wider shadow">
+                      {t('product.arrivage')}
+                    </span>
+                  )}
+                  {prod.discount ? (
+                    <span className="bg-[#EA301F] text-white text-[10px] font-azeret font-bold px-2 py-0.5 uppercase tracking-wider shadow">
+                      {prod.discount}
+                    </span>
+                  ) : prod.badge && isPurchasable ? (
+                    <span className="bg-black/65 backdrop-blur-md text-[#FFFFE3] text-[9px] font-mono font-bold px-2 py-0.5 uppercase tracking-widest">
+                      {prod.badge}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
 
-        {/* Zara Quick Size Overlay Drawer */}
-        {quickSizeOpen && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="absolute inset-x-0 bottom-0 bg-[#111111]/95 backdrop-blur-md border-t border-[#2E2E38] p-2.5 z-20 animate-in fade-in duration-150"
-          >
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[9px] font-mono text-[#A1A1AA] uppercase tracking-widest">
-                QUICK ADD • {activeVariant?.name}
-              </span>
-              <button
-                onClick={() => setQuickSizeOpen(false)}
-                className="text-[#8E8E93] hover:text-white cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {(prod.sizes || ['XS', 'S', 'M', 'L', 'XL']).map((sz) => (
-                <button
-                  key={sz}
-                  onClick={() => {
-                    onQuickAddToCart(
-                      { ...prod, img: currentImg, image: currentImg },
-                      sz,
-                      activeVariant?.name || 'Standard',
-                      1
-                    );
-                    setQuickSizeOpen(false);
-                  }}
-                  className="min-w-[28px] px-2 py-1 text-[10px] font-azeret font-bold bg-[#1C1C24] hover:bg-[#EA301F] text-white border border-[#2F2F3B] hover:border-[#EA301F] transition-colors cursor-pointer"
+              {/* Multi-Angle Studio Navigation Arrows on Hover */}
+              {gallery.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImg}
+                    className="opacity-0 group-hover:opacity-100 absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all z-10 cursor-pointer"
+                    title="Previous angle"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={nextImg}
+                    className="opacity-0 group-hover:opacity-100 absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all z-10 cursor-pointer"
+                    title="Next angle"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+
+              {/* Bottom Overlay Bar: Angle Dots & Zara '+' Quick Size Trigger (or status badge when unavailable) */}
+              {!quickSizeOpen && (
+                <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between z-10">
+                  <div className="flex items-center gap-1 bg-black/45 backdrop-blur-sm px-2 py-1 rounded-full">
+                    {gallery.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveImgIdx(i);
+                        }}
+                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                          i === activeImgIdx ? 'w-4 bg-white' : 'w-1.5 bg-white/45 hover:bg-white/80'
+                        }`}
+                        title={`View ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+
+                  {isPurchasable ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setQuickSizeOpen(true);
+                      }}
+                      className="w-7 h-7 rounded-full bg-white/90 hover:bg-[#EA301F] text-[#111111] hover:text-white flex items-center justify-center shadow-md transition-colors cursor-pointer"
+                      title="Quick Add Size"
+                    >
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                  ) : (
+                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-mono font-bold uppercase ${isArrivage ? 'bg-[#f59e0b] text-[#111111]' : 'bg-black/80 text-white/85'}`}>
+                      {isArrivage ? t('product.arrivage') : t('product.outOfStock')}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Zara Quick Size Overlay Drawer */}
+              {quickSizeOpen && isPurchasable && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute inset-x-0 bottom-0 bg-[#111111]/95 backdrop-blur-md border-t border-[#2E2E38] p-2.5 z-20 animate-in fade-in duration-150"
                 >
-                  {sz}
-                </button>
-              ))}
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[9px] font-mono text-[#A1A1AA] uppercase tracking-widest">
+                      QUICK ADD • {activeVariant?.name}
+                    </span>
+                    <button
+                      onClick={() => setQuickSizeOpen(false)}
+                      className="text-[#8E8E93] hover:text-white cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {(prod.sizes || ['XS', 'S', 'M', 'L', 'XL']).map((sz) => (
+                      <button
+                        key={sz}
+                        onClick={() => {
+                          onQuickAddToCart(
+                            { ...prod, img: currentImg, image: currentImg },
+                            sz,
+                            activeVariant?.name || 'Standard',
+                            1
+                          );
+                          setQuickSizeOpen(false);
+                        }}
+                        className="min-w-[28px] px-2 py-1 text-[10px] font-azeret font-bold bg-[#1C1C24] hover:bg-[#EA301F] text-white border border-[#2F2F3B] hover:border-[#EA301F] transition-colors cursor-pointer"
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
-      </div>
+          </>
+        );
+      })()}
 
       {/* Card Footer Info (Clean Zara Metadata + Real Color Swatches) */}
       <div className="p-3.5 flex flex-col justify-between flex-1">
@@ -516,6 +566,7 @@ export default function RawlineMasterEngine({
   const [activeNewArrivalsTab, setActiveNewArrivalsTab] = useState('MEN');
   const [saleGenderFilter, setSaleGenderFilter] = useState('ALL'); // 'ALL' | 'MEN' | 'WOMEN'
   const [saleCategoryFilter, setSaleCategoryFilter] = useState('ALL');
+  const [saleStatusFilter, setSaleStatusFilter] = useState('ALL'); // 'ALL' | 'PROMO' | 'ARRIVAGE'
   const [showAllSale, setShowAllSale] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -542,6 +593,7 @@ export default function RawlineMasterEngine({
   const [showFittingLab, setShowFittingLab] = useState(false);
   const [fittingLabProduct, setFittingLabProduct] = useState(null);
   const [showAIChat, setShowAIChat] = useState(false);
+  const [aiChatbotActivated, setAiChatbotActivated] = useState(false);
 
   const handleOpenFittingLab = (prodToFit = null) => {
     setFittingLabProduct(prodToFit || null);
@@ -552,21 +604,21 @@ export default function RawlineMasterEngine({
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState(['zara-w1', 'zara-m1']);
 
-  // Trigger nav appear animation after 1.1s (exact Framer appear timing)
+  // Trigger nav appear animation cleanly
   useEffect(() => {
-    const timer = setTimeout(() => setNavVisible(true), 300);
+    const timer = setTimeout(() => setNavVisible(true), 200);
     return () => clearTimeout(timer);
   }, []);
 
-  // Section Refs for scroll-driven animations
+  // Section Refs for zero-rerender CSS scroll-driven animations
   const aboutRef = useRef(null);
-  const aboutProgress = useElementScrollProgress(aboutRef);
+  useElementScrollProgressCss(aboutRef);
 
   const giftRef = useRef(null);
-  const giftProgress = useElementScrollProgress(giftRef);
+  useElementScrollProgressCss(giftRef);
 
   const featuresRef = useRef(null);
-  const featuresProgress = useElementScrollProgress(featuresRef);
+  useElementScrollProgressCss(featuresRef);
 
   // Currency Options - Defaulting to Tunisian Dinar (DT / TND) as Base 1.0
   const currencies = [
@@ -666,19 +718,25 @@ export default function RawlineMasterEngine({
   };
 
   const addToCart = (product, size = 'M', color = '', qty = 1) => {
+    if (!product) return false;
+    const avail = normalizeAvailabilityStatus(product);
+    if (avail !== 'in_stock' && product.id !== 'gift-card' && size !== 'DIGITAL') {
+      return false;
+    }
     const chosenColor = color || product.colors?.[0] || 'Standard';
     setCart(prev => {
       const existing = prev.find(i => i.product.id === product.id && i.size === size && i.color === chosenColor);
       if (existing) {
         return prev.map(i =>
           i.product.id === product.id && i.size === size && i.color === chosenColor
-            ? { ...i, quantity: i.quantity + qty }
+            ? { ...i, product, quantity: i.quantity + qty }
             : i
         );
       }
       return [...prev, { product, size, color: chosenColor, quantity: qty }];
     });
     setShowCartDrawer(true);
+    return true;
   };
 
   const cartTotal = useMemo(() => {
@@ -5456,11 +5514,12 @@ export default function RawlineMasterEngine({
       }
   ];
 
-  // Dynamic products list connected to live customizer data with fallbacks
+  // Dynamic products list connected to live customizer data with strict cloud-hydration awareness
   const products = useMemo(() => {
-    const list = (data?.products && Array.isArray(data.products) && data.products.length > 0)
+    const hasConfiguredProducts = Array.isArray(data?.products) && (data.products.length > 0 || data?.__cloudHydrated);
+    const list = hasConfiguredProducts
       ? data.products
-      : ((data?.productsCatalog && Array.isArray(data.productsCatalog) && data.productsCatalog.length > 0)
+      : ((Array.isArray(data?.productsCatalog) && (data.productsCatalog.length > 0 || data?.__cloudHydrated))
           ? data.productsCatalog
           : fallbackProducts);
 
@@ -5475,6 +5534,12 @@ export default function RawlineMasterEngine({
           : normalizedColors.map((c) => ({ name: c, hex: getColorHex(c), images: normalizedImages }));
 
         const resolvedOld = p.oldPrice ?? p.originalPrice ?? null;
+        const availabilityStatus = normalizeAvailabilityStatus(p);
+        const rawStock = typeof p.stockQuantity === 'number'
+          ? p.stockQuantity
+          : (typeof p.stockCount === 'number' ? p.stockCount : null);
+        const stockCount = availabilityStatus === 'in_stock' ? (rawStock !== null && rawStock > 0 ? rawStock : 12) : 0;
+
         return {
           id: p.id || `prod-${idx + 1}`,
           slug: p.slug || (p.name || `piece-${idx + 1}`).toLowerCase().replace(/[^a-z0-9]/g, '-'),
@@ -5486,34 +5551,67 @@ export default function RawlineMasterEngine({
           gender: p.gender || (idx % 2 === 0 ? 'WOMEN' : 'MEN'),
           img: primaryImg,
           image: primaryImg,
-        images: normalizedImages,
-        colorVariants: normalizedVariants,
-        desc: p.description || p.desc || 'Editorial collection piece crafted for modern silhouettes.',
-        description: p.description || p.desc || 'Editorial collection piece crafted for modern silhouettes.',
-        badge: p.badge || null,
-        isSale: p.isSale !== undefined ? p.isSale : true,
-        inStock: p.inStock !== undefined ? p.inStock : true,
-        stockCount: p.stockCount || 12,
-        sizes: Array.isArray(p.sizes) && p.sizes.length > 0 ? p.sizes : ['XS', 'S', 'M', 'L', 'XL'],
-        colors: normalizedColors,
-        reference: p.reference || '',
-        materialCare: p.materialCare || ['100% Cotton', 'Follow garment care label']
-      };
-    });
-  }, [data?.products, data?.productsCatalog]);
+          images: normalizedImages,
+          colorVariants: normalizedVariants,
+          desc: p.description || p.desc || 'Editorial collection piece crafted for modern silhouettes.',
+          description: p.description || p.desc || 'Editorial collection piece crafted for modern silhouettes.',
+          badge: p.badge || null,
+          isSale: p.isSale !== undefined ? p.isSale : true,
+          availabilityStatus,
+          arrivalNote: p.arrivalNote || p.arrival_note || '',
+          inStock: availabilityStatus === 'in_stock',
+          stockCount,
+          stockQuantity: stockCount,
+          sizes: Array.isArray(p.sizes) && p.sizes.length > 0 ? p.sizes : ['XS', 'S', 'M', 'L', 'XL'],
+          colors: normalizedColors,
+          reference: p.reference || '',
+          materialCare: p.materialCare || ['100% Cotton', 'Follow garment care label']
+        };
+      });
+  }, [data?.products, data?.productsCatalog, data?.__cloudHydrated]);
 
-  // Keep selectedProduct, color & size synced whenever URL /product/:slug changes (incl. refresh & popstate)
+  // Keep cart synced with live Supabase/Admin prices, promos, availability, and deletions
+  useEffect(() => {
+    if (!data?.__cloudHydrated && products.length === 0) return;
+    const byId = new Map(products.map((p) => [p.id, p]));
+    setCart((prev) => {
+      let changed = false;
+      const next = [];
+      for (const item of prev) {
+        if (item?.product?.id === 'gift-card') {
+          next.push(item);
+          continue;
+        }
+        const live = byId.get(item?.product?.id);
+        if (!live || live.availabilityStatus !== 'in_stock') {
+          changed = true;
+          continue;
+        }
+        if (
+          item.product.price !== live.price ||
+          item.product.oldPrice !== live.oldPrice ||
+          item.product.discount !== live.discount ||
+          item.product.name !== live.name ||
+          item.product.img !== live.img
+        ) {
+          changed = true;
+          next.push({ ...item, product: live });
+        } else {
+          next.push(item);
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [products, data?.__cloudHydrated]);
+
+  // Keep selectedProduct, color & size synced whenever URL /product/:slug changes or product is removed
   const activeRouteProduct = useMemo(() => {
     if (!routeState.slug) return null;
-    return (
-      products.find((p) => p.slug === routeState.slug || p.id === routeState.slug) ||
-      selectedProduct ||
-      null
-    );
-  }, [routeState.slug, products, selectedProduct]);
+    return products.find((p) => p.slug === routeState.slug || p.id === routeState.slug) || null;
+  }, [routeState.slug, products]);
 
   useEffect(() => {
-    if (activeRouteProduct && (!selectedProduct || selectedProduct.id !== activeRouteProduct.id)) {
+    if (activeRouteProduct && (!selectedProduct || selectedProduct.id !== activeRouteProduct.id || selectedProduct.price !== activeRouteProduct.price || selectedProduct.availabilityStatus !== activeRouteProduct.availabilityStatus || selectedProduct.discount !== activeRouteProduct.discount || selectedProduct.oldPrice !== activeRouteProduct.oldPrice || selectedProduct.arrivalNote !== activeRouteProduct.arrivalNote)) {
       setSelectedProduct(activeRouteProduct);
       const safeColor = (activeRouteProduct.colorVariants && activeRouteProduct.colorVariants[routeState.colorIdx])
         ? routeState.colorIdx
@@ -5525,15 +5623,17 @@ export default function RawlineMasterEngine({
         activeRouteProduct.colors?.[safeColor] ||
         'Standard'
       );
-    } else if (!routeState.slug && selectedProduct) {
+    } else if ((!routeState.slug || (data?.__cloudHydrated && !activeRouteProduct)) && selectedProduct) {
       setSelectedProduct(null);
     }
-  }, [activeRouteProduct, routeState.slug, routeState.colorIdx]);
+  }, [activeRouteProduct, routeState.slug, routeState.colorIdx, data?.__cloudHydrated]);
 
   // Counts for gender separation ("Trier Femme & Homme")
   const menSaleCount = useMemo(() => products.filter(p => p.isSale !== false && p.gender === 'MEN').length, [products]);
   const womenSaleCount = useMemo(() => products.filter(p => p.isSale !== false && p.gender === 'WOMEN').length, [products]);
   const totalSaleCount = useMemo(() => products.filter(p => p.isSale !== false).length, [products]);
+  const promoSaleCount = useMemo(() => products.filter(p => p.isSale !== false && ((p.oldPrice && p.oldPrice > p.price) || Boolean(p.discount))).length, [products]);
+  const arrivageSaleCount = useMemo(() => products.filter(p => p.isSale !== false && p.availabilityStatus === 'arrivage').length, [products]);
 
   // Categories present in sale products for interactive tabs (adapts to selected gender)
   const saleCategories = useMemo(() => {
@@ -5546,7 +5646,7 @@ export default function RawlineMasterEngine({
     return ['ALL', ...Array.from(cats)];
   }, [products, saleGenderFilter]);
 
-  // Filtered sale products according to gender filter AND category filter
+  // Filtered sale products according to gender filter, category filter, and status filter (ALL / PROMO / ARRIVAGE)
   const saleProducts = useMemo(() => {
     let list = products.filter(p => p.isSale !== false);
     if (saleGenderFilter !== 'ALL') {
@@ -5556,8 +5656,13 @@ export default function RawlineMasterEngine({
       const q = saleCategoryFilter.toLowerCase();
       list = list.filter(p => p.category.toLowerCase() === q);
     }
+    if (saleStatusFilter === 'PROMO') {
+      list = list.filter(p => (p.oldPrice && p.oldPrice > p.price) || Boolean(p.discount));
+    } else if (saleStatusFilter === 'ARRIVAGE') {
+      list = list.filter(p => p.availabilityStatus === 'arrivage');
+    }
     return list;
-  }, [products, saleGenderFilter, saleCategoryFilter]);
+  }, [products, saleGenderFilter, saleCategoryFilter, saleStatusFilter]);
 
   // New arrivals list dynamically filtered by gender tab (MEN / WOMEN)
   const newArrivalsList = useMemo(() => {
@@ -5737,7 +5842,11 @@ export default function RawlineMasterEngine({
 
           {/* AI Stylist Pill */}
           <button
-            onClick={() => setShowAIChat(v => !v)}
+            onMouseEnter={prefetchAiChatbot}
+            onClick={() => {
+              setAiChatbotActivated(true);
+              setShowAIChat(v => !v);
+            }}
             className="kronos-surface-pill flex items-center gap-1.5 h-[36px] px-3 rounded-full bg-[#18181D] hover:bg-[#EA301F] text-[#FFFFE3] hover:text-white border border-[#2B2B33] hover:border-[#EA301F] text-[11px] font-mono font-bold uppercase transition-all tracking-wider shadow-sm cursor-pointer group whitespace-nowrap shrink-0"
             title="Open K AI Stylist & Concierge"
           >
@@ -5747,6 +5856,7 @@ export default function RawlineMasterEngine({
 
           {/* 3D Virtual Try-On Studio Pill (Bigger 24x24 3D Cube Icon & Expanded Dimensions) */}
           <button
+            onMouseEnter={prefetchFittingLab}
             onClick={() => handleOpenFittingLab(null)}
             className="kronos-accent-btn flex items-center gap-2 h-[42px] px-3.5 rounded-xl bg-[#EA301F]/25 hover:bg-[#EA301F] text-[#FF4D3D] hover:text-white border border-[#EA301F]/70 hover:border-[#EA301F] text-[12px] font-mono font-black uppercase transition-all tracking-wider shadow-[0_0_16px_rgba(234,48,31,0.22)] cursor-pointer group whitespace-nowrap shrink-0"
             title="Launch 3D Virtual Try-On Studio"
@@ -6125,9 +6235,33 @@ export default function RawlineMasterEngine({
                       alt={item.name}
                       className="w-full h-full object-cover object-top"
                     />
+                    {(item.availabilityStatus !== 'in_stock' || item.discount || (item.oldPrice && item.oldPrice > item.price)) && (
+                      <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1 z-10">
+                        {item.availabilityStatus === 'out_of_stock' && (
+                          <span className="bg-black text-white px-2 py-0.5 font-azeret text-[9px] font-bold uppercase tracking-wider rounded-sm">
+                            {t('product.outOfStock')}
+                          </span>
+                        )}
+                        {item.availabilityStatus === 'arrivage' && (
+                          <span className="bg-amber-400 text-black px-2 py-0.5 font-azeret text-[9px] font-bold uppercase tracking-wider rounded-sm">
+                            {t('product.arrivage')}
+                          </span>
+                        )}
+                        {(item.discount || (item.oldPrice && item.oldPrice > item.price)) && (
+                          <span className="bg-[#EA301F] text-white px-2 py-0.5 font-azeret text-[9px] font-bold uppercase tracking-wider rounded-sm">
+                            {item.discount || `-${Math.round(((item.oldPrice - item.price) / item.oldPrice) * 100)}%`}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
                       <div className="font-azeret text-[10px] font-bold uppercase text-white truncate">{localizeProductName(item.name, language)}</div>
-                      <div className="font-azeret text-xs font-bold text-[#EA301F]">{formatPrice(item.price)}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-azeret text-xs font-bold text-[#EA301F]">{formatPrice(item.price)}</span>
+                        {item.oldPrice && item.oldPrice > item.price && (
+                          <span className="font-azeret text-[10px] text-white/70 line-through">{formatPrice(item.oldPrice)}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))
@@ -6158,21 +6292,21 @@ export default function RawlineMasterEngine({
         id="about"
         className="hero-photo-preserve w-full h-screen min-h-[850px] relative flex items-center justify-center bg-[#111111] overflow-hidden px-4"
       >
-        {/* Background Image with Smooth Scroll Scale Effect */}
+        {/* Background Image with Smooth CSS GPU Scroll Scale Effect */}
         <div
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-300 ease-out will-change-transform"
+          className="absolute inset-0 bg-cover bg-center will-change-transform"
           style={{
             backgroundImage: `url('${data?.about?.bgImage || data?.manifesto?.bgImage || 'https://framerusercontent.com/images/2LEsj8dTfuADr3ESmjj0dA2TgA.webp?width=3000&height=2000'}')`,
-            transform: `scale(${1 + aboutProgress * 0.3})`
+            transform: 'scale(calc(1 + var(--scroll-p, 0) * 0.3))'
           }}
         />
         <div className="absolute inset-0 bg-[#111111]/25 pointer-events-none" />
 
         {/* Content with parallax translateY */}
         <div
-          className="relative z-10 max-w-4xl text-center px-4 transition-transform duration-300 ease-out"
+          className="relative z-10 max-w-4xl text-center px-4 will-change-transform"
           style={{
-            transform: `translateY(${(1 - aboutProgress) * 60}px)`
+            transform: 'translateY(calc((1 - var(--scroll-p, 0)) * 60px))'
           }}
         >
           {/* Superimposed Title */}
@@ -6225,6 +6359,8 @@ export default function RawlineMasterEngine({
             <img
               src={data.drops.items[0].image || 'https://framerusercontent.com/images/BJfrkmv0iyiZnReeFBXU944wCT0.webp?width=1920&height=2880'}
               alt={data.drops.items[0].title || 'Featured Drop'}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
 
@@ -6262,6 +6398,8 @@ export default function RawlineMasterEngine({
               <img
                 src={dropItem.image}
                 alt={dropItem.title}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/50 transition-colors duration-300 flex flex-col justify-end p-8 text-center">
@@ -6372,12 +6510,39 @@ export default function RawlineMasterEngine({
           </div>
         </div>
 
-        {/* Dynamic Category Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar scroll-smooth">
+        {/* Dynamic Status & Category Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar scroll-smooth">
+          {promoSaleCount > 0 && (
+            <button
+              onClick={() => setSaleStatusFilter(prev => (prev === 'PROMO' ? 'ALL' : 'PROMO'))}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                saleStatusFilter === 'PROMO'
+                  ? 'bg-[#EA301F] text-white font-bold shadow-[0_0_15px_rgba(234,48,31,0.5)] border border-[#EA301F]'
+                  : 'bg-[#1D1214] text-[#FF8C82] hover:bg-[#EA301F]/20 border border-[#EA301F]/40'
+              }`}
+            >
+              🔥 {t('filters.promoOnly')} ({promoSaleCount})
+            </button>
+          )}
+          {arrivageSaleCount > 0 && (
+            <button
+              onClick={() => setSaleStatusFilter(prev => (prev === 'ARRIVAGE' ? 'ALL' : 'ARRIVAGE'))}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                saleStatusFilter === 'ARRIVAGE'
+                  ? 'bg-amber-400 text-black font-bold border border-amber-300'
+                  : 'bg-[#1F1A10] text-amber-300 hover:bg-amber-500/20 border border-amber-500/40'
+              }`}
+            >
+              ⏳ {t('filters.arrivageOnly')} ({arrivageSaleCount})
+            </button>
+          )}
           {saleCategories.map(cat => (
             <button
               key={cat}
-              onClick={() => setSaleCategoryFilter(cat)}
+              onClick={() => {
+                setSaleCategoryFilter(cat);
+                if (cat === 'ALL') setSaleStatusFilter('ALL');
+              }}
               className={`px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
                 saleCategoryFilter === cat
                   ? 'kronos-accent-btn bg-[#EA301F] text-white font-bold shadow-[0_0_15px_rgba(234,48,31,0.5)] border border-[#EA301F]'
@@ -6453,10 +6618,10 @@ export default function RawlineMasterEngine({
             return (
               <div
                 key={feat.id || idx}
-                className={`p-6 bg-[#131313] border border-[#222] flex flex-col justify-between min-h-[300px] ${mtClasses[idx] || ''} transition-all duration-700 ease-out`}
+                className={`p-6 bg-[#131313] border border-[#222] flex flex-col justify-between min-h-[300px] ${mtClasses[idx] || ''}`}
                 style={{
-                  transform: `translateY(${(1 - Math.min(1, featuresProgress * mult)) * 60}px)`,
-                  opacity: Math.min(1, featuresProgress * opMult)
+                  transform: `translateY(calc((1 - min(1, var(--scroll-p, 0) * ${mult})) * 60px))`,
+                  opacity: `min(1, var(--scroll-p, 0) * ${opMult})`
                 }}
               >
                 <p className="font-azeret text-[19.2px] leading-[26.88px] uppercase text-[#FFFFE3] mb-8">
@@ -6505,6 +6670,8 @@ export default function RawlineMasterEngine({
               <img
                 src={cat.image}
                 alt={cat.title}
+                loading="lazy"
+                decoding="async"
                 className={`w-full h-full object-cover ${extraImgClass} group-hover:scale-105 transition-transform duration-700`}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-center pb-6">
@@ -6601,10 +6768,11 @@ export default function RawlineMasterEngine({
       ───────────────────────────────────────────────────────────── */}
       <section className="hero-photo-preserve w-full h-screen min-h-[850px] relative flex items-center justify-center bg-[#111111] overflow-hidden p-5">
         <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
-          {/* Authentic Video Element */}
+          {/* Authentic Video Element (lazy preload="none" so initial Hero & catalog images stay instant) */}
           <video
             src={data?.lookbook?.videoUrl || 'https://www.pexels.com/download/video/10380614/'}
             poster={data?.lookbook?.poster || 'https://framerusercontent.com/images/VuYyTMeqVjLcLafwEzMBiH706A.webp?width=1896&height=1000'}
+            preload="none"
             autoPlay
             loop
             muted
@@ -6773,6 +6941,8 @@ export default function RawlineMasterEngine({
                 <img
                   src={photoUrl}
                   alt={rev.author || `Social Post ${i + 1}`}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <a
@@ -6810,21 +6980,21 @@ export default function RawlineMasterEngine({
         ref={giftRef}
         className="hero-photo-preserve w-full h-screen min-h-[850px] relative flex items-center justify-center bg-[#111111] overflow-hidden px-4"
       >
-        {/* Background Image with Smooth Scroll Scale Animation */}
+        {/* Background Image with Smooth CSS GPU Scroll Scale Animation */}
         <div
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-300 ease-out will-change-transform"
+          className="absolute inset-0 bg-cover bg-center will-change-transform"
           style={{
             backgroundImage: `url('${data?.giftCard?.bgImage || 'https://framerusercontent.com/images/fcUv7dMRjP5YP77zc5TUoOIeStQ.webp?width=2997&height=2000'}')`,
-            transform: `scale(${1 + giftProgress * 0.3})`
+            transform: 'scale(calc(1 + var(--scroll-p, 0) * 0.3))'
           }}
         />
         <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
         {/* Content with parallax translateY */}
         <div
-          className="relative z-10 max-w-4xl text-center px-4 transition-transform duration-300 ease-out"
+          className="relative z-10 max-w-4xl text-center px-4 will-change-transform"
           style={{
-            transform: `translateY(${(1 - giftProgress) * 60}px)`
+            transform: 'translateY(calc((1 - var(--scroll-p, 0)) * 60px))'
           }}
         >
           {/* Superimposed Title */}
@@ -6887,6 +7057,8 @@ export default function RawlineMasterEngine({
                     ? 'https://framerusercontent.com/images/gqJnwudaBfsyzpMDRUVHcuY.webp?width=870&height=800'
                     : 'https://framerusercontent.com/images/RtzexXET68jVkKH97jdJpyotYOk.webp?width=799&height=800')}
                   alt={`${st.city || 'Flagship'} Store`}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 {st.status && (
@@ -7144,25 +7316,51 @@ export default function RawlineMasterEngine({
             </div>
 
             <div className="mt-4 max-h-80 overflow-y-auto space-y-2">
-              {filteredProducts.map(prod => (
-                <div
-                  key={prod.id}
-                  onClick={() => {
-                    handleSelectProduct(prod);
-                    setShowSearchModal(false);
-                  }}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-[#1C1C22] cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <img src={prod.img} alt={localizeProductName(prod.name, language)} className="w-11 h-14 object-cover object-top bg-[#ECECE9] rounded" />
-                    <div>
-                      <h4 className="font-azeret font-bold text-xs uppercase text-white">{localizeProductName(prod.name, language)}</h4>
-                      <span className="font-azeret text-[10px] text-[#8E8E93]">{localizeGender(prod.gender, language)} • {localizeCategory(prod.category, language)}</span>
+              {filteredProducts.map(prod => {
+                const avail = normalizeAvailabilityStatus(prod);
+                const hasPromo = (prod.oldPrice && prod.oldPrice > prod.price) || Boolean(prod.discount);
+                return (
+                  <div
+                    key={prod.id}
+                    onClick={() => {
+                      handleSelectProduct(prod);
+                      setShowSearchModal(false);
+                    }}
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-[#1C1C22] cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 pr-2">
+                      <img src={prod.img} alt={localizeProductName(prod.name, language)} className="w-11 h-14 object-cover object-top bg-[#ECECE9] rounded shrink-0" />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-azeret font-bold text-xs uppercase text-white truncate">{localizeProductName(prod.name, language)}</h4>
+                          {avail === 'out_of_stock' && (
+                            <span className="px-1.5 py-0.5 bg-white/10 text-white font-azeret text-[9px] uppercase rounded">
+                              {t('product.outOfStock')}
+                            </span>
+                          )}
+                          {avail === 'arrivage' && (
+                            <span className="px-1.5 py-0.5 bg-amber-400 text-black font-azeret text-[9px] font-bold uppercase rounded">
+                              {t('product.arrivage')}
+                            </span>
+                          )}
+                          {hasPromo && (
+                            <span className="px-1.5 py-0.5 bg-[#EA301F] text-white font-azeret text-[9px] font-bold uppercase rounded">
+                              {prod.discount || `-${Math.round(((prod.oldPrice - prod.price) / prod.oldPrice) * 100)}%`}
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-azeret text-[10px] text-[#8E8E93]">{localizeGender(prod.gender, language)} • {localizeCategory(prod.category, language)}</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className={`font-azeret font-bold text-xs ${hasPromo ? 'text-[#EA301F]' : 'text-white'}`}>{formatPrice(prod.price)}</span>
+                      {prod.oldPrice && prod.oldPrice > prod.price && (
+                        <div className="font-azeret text-[10px] text-[#8E8E93] line-through">{formatPrice(prod.oldPrice)}</div>
+                      )}
                     </div>
                   </div>
-                  <span className="font-azeret font-bold text-xs text-white">{formatPrice(prod.price)}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -7527,6 +7725,9 @@ export default function RawlineMasterEngine({
                   wishlist.map(id => {
                     const prod = products.find(p => p.id === id);
                     if (!prod) return null;
+                    const avail = normalizeAvailabilityStatus(prod);
+                    const canBuy = avail === 'in_stock';
+                    const hasPromo = (prod.oldPrice && prod.oldPrice > prod.price) || Boolean(prod.discount);
                     return (
                       <div key={id} className="flex items-center justify-between p-3 bg-[#1C1C22] rounded-xl border border-[#2A2A35]">
                         <div
@@ -7539,14 +7740,36 @@ export default function RawlineMasterEngine({
                           <img src={prod.img} alt={localizeProductName(prod.name, language)} className="w-11 h-14 object-cover object-top bg-[#ECECE9] rounded shrink-0" />
                           <div className="min-w-0">
                             <h4 className="font-azeret font-bold text-xs uppercase text-white group-hover:text-[#EA301F] truncate transition-colors">{localizeProductName(prod.name, language)}</h4>
-                            <span className="font-azeret font-bold text-xs text-white">{formatPrice(prod.price)}</span>
+                            <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                              <span className={`font-azeret font-bold text-xs ${hasPromo ? 'text-[#EA301F]' : 'text-white'}`}>{formatPrice(prod.price)}</span>
+                              {prod.oldPrice && prod.oldPrice > prod.price && (
+                                <span className="font-azeret text-[10px] text-[#8E8E93] line-through">{formatPrice(prod.oldPrice)}</span>
+                              )}
+                              {avail === 'out_of_stock' && (
+                                <span className="px-1.5 py-0.5 bg-white/10 text-white font-azeret text-[9px] uppercase rounded">
+                                  {t('product.outOfStock')}
+                                </span>
+                              )}
+                              {avail === 'arrivage' && (
+                                <span className="px-1.5 py-0.5 bg-amber-400 text-black font-azeret text-[9px] font-bold uppercase rounded">
+                                  {t('product.arrivage')}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <button
-                          onClick={() => addToCart(prod, prod.sizes?.[0] || 'M', prod.colors?.[0] || 'Standard', 1)}
-                          className="px-3 py-1.5 bg-[#EA301F] text-white font-azeret text-[10px] font-bold rounded cursor-pointer shrink-0"
+                          onClick={() => canBuy && addToCart(prod, prod.sizes?.[0] || 'M', prod.colors?.[0] || 'Standard', 1)}
+                          disabled={!canBuy}
+                          className={`px-3 py-1.5 font-azeret text-[10px] font-bold rounded shrink-0 transition-colors ${
+                            canBuy
+                              ? 'bg-[#EA301F] text-white cursor-pointer hover:bg-[#ff3b29]'
+                              : 'bg-[#2A2A35] text-[#8E8E93] cursor-not-allowed'
+                          }`}
                         >
-                          {t('wishlist.moveToBag')}
+                          {canBuy
+                            ? t('wishlist.moveToBag')
+                            : (avail === 'arrivage' ? t('product.arrivage') : t('product.outOfStock'))}
                         </button>
                       </div>
                     );
@@ -7571,49 +7794,93 @@ export default function RawlineMasterEngine({
         </button>
       )}
 
-      {/* ── 3D Real Human Fitting Lab & Virtual Try-On Studio ── */}
-      <FittingLabErrorBoundary
-        isOpen={showFittingLab || externalFittingLabOpen}
-        onClose={() => {
-          setShowFittingLab(false);
-          if (onCloseFittingLab) onCloseFittingLab();
-        }}
-      >
-        <Rawline3DFittingLab
+      {/* ── 3D Real Human Fitting Lab & Virtual Try-On Studio (Lazy Loaded on Open) ── */}
+      {(showFittingLab || externalFittingLabOpen) && (
+        <FittingLabErrorBoundary
           isOpen={showFittingLab || externalFittingLabOpen}
           onClose={() => {
             setShowFittingLab(false);
             if (onCloseFittingLab) onCloseFittingLab();
           }}
-          product={fittingLabProduct}
-          allProducts={products}
-          onAddToCart={(prod, sz, qty, col) => addToCart(prod, sz, col, qty)}
-          initialSize="L"
-          onAddProduct={onAddProduct}
-          onUpdateProduct={onUpdateProduct}
-          onDeleteProduct={onDeleteProduct}
-          uploadImage={uploadImage}
-        />
-      </FittingLabErrorBoundary>
+        >
+          <Suspense
+            fallback={
+              <div className="fixed inset-0 z-[100] bg-[#0B0B10]/95 flex items-center justify-center text-white font-mono text-xs uppercase tracking-widest">
+                Initializing 3D Virtual Fitting Lab...
+              </div>
+            }
+          >
+            <Rawline3DFittingLab
+              isOpen={showFittingLab || externalFittingLabOpen}
+              onClose={() => {
+                setShowFittingLab(false);
+                if (onCloseFittingLab) onCloseFittingLab();
+              }}
+              product={fittingLabProduct}
+              allProducts={products}
+              onAddToCart={(prod, sz, qty, col) => addToCart(prod, sz, col, qty)}
+              initialSize="L"
+              onAddProduct={onAddProduct}
+              onUpdateProduct={onUpdateProduct}
+              onDeleteProduct={onDeleteProduct}
+              uploadImage={uploadImage}
+            />
+          </Suspense>
+        </FittingLabErrorBoundary>
+      )}
 
-      {/* ── Persistent Floating AI Stylist Widget (Groq + Graph RAG) ── */}
-      <RawlineAIChatbot
-        isOpen={showAIChat}
-        setIsOpen={setShowAIChat}
-        storeData={data}
-        products={products}
-        drops={data?.drops}
-        brandName={data?.brand?.name}
-        faqs={data?.faqs}
-        footer={data?.footer}
-        formatPrice={formatPrice}
-        addToCart={addToCart}
-        onOpenFittingLab={handleOpenFittingLab}
-        onSelectProduct={handleSelectProduct}
-        activeCurrencyCode={activeCurrencyCode}
-        currentCurrency={currentCurrency}
-        language={language}
-      />
+      {/* ── Persistent Floating AI Stylist Widget (Lazy Loaded on Hover/Click) ── */}
+      {aiChatbotActivated || showAIChat ? (
+        <Suspense fallback={null}>
+          <RawlineAIChatbot
+            isOpen={showAIChat}
+            setIsOpen={setShowAIChat}
+            storeData={data}
+            products={products}
+            drops={data?.drops}
+            brandName={data?.brand?.name}
+            faqs={data?.faqs}
+            footer={data?.footer}
+            formatPrice={formatPrice}
+            addToCart={addToCart}
+            onOpenFittingLab={handleOpenFittingLab}
+            onSelectProduct={handleSelectProduct}
+            activeCurrencyCode={activeCurrencyCode}
+            currentCurrency={currentCurrency}
+            language={language}
+          />
+        </Suspense>
+      ) : (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto">
+          <div className="relative group">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-full border-2 border-[#E5A93C]/80 animate-chatbot-sonar"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-1 rounded-full bg-[#EA301F]/25 blur-md animate-pulse"
+            />
+            <button
+              onMouseEnter={prefetchAiChatbot}
+              onFocus={prefetchAiChatbot}
+              onClick={() => {
+                setAiChatbotActivated(true);
+                setShowAIChat(true);
+              }}
+              aria-label={`${data?.brand?.name || 'K'} — Personal Stylist`}
+              title={`${data?.brand?.name || 'K'} — ${t('nav.aiStylist')}`}
+              className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#111111] ring-2 ring-[#E5A93C] hover:ring-[#EA301F] shadow-[0_0_25px_rgba(229,169,60,0.6),0_0_50px_rgba(234,48,31,0.35)] flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-300 animate-chatbot-trigger"
+            >
+              <KronosLogo className="w-8 h-7 sm:w-9 sm:h-8 transition-transform duration-300 group-hover:scale-110" />
+              <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-85" />
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#22c55e] border-2 border-[#111111]" />
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

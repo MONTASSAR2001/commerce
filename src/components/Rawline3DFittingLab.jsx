@@ -945,7 +945,7 @@ export default function Rawline3DFittingLab({
       visibleGarments[meshName] = { hex: getHexStr(chosenColorName, prod) };
     });
 
-    const drawFrame = () => {
+    const drawFrame = (interactive = false) => {
       const sceneData = softwareDataCacheRef.current[url];
       if (!sceneData) return;
       const orbit = softwareOrbitRef.current;
@@ -965,20 +965,22 @@ export default function Rawline3DFittingLab({
           yaw: orbit.yaw,
           pitch: orbit.pitch,
           zoomDist: orbit.zoom,
-          visibleGarments
+          visibleGarments,
+          interactive
         }
       });
     };
 
-    renderSoftwareNowRef.current = drawFrame;
-    drawFrame();
+    renderSoftwareNowRef.current = () => drawFrame(false);
+    drawFrame(false);
 
     let dragRaf = 0;
-    const scheduleDraw = () => {
+    let wheelTimer = 0;
+    const scheduleDraw = (interactive = false) => {
       if (dragRaf) return;
       dragRaf = requestAnimationFrame(() => {
         dragRaf = 0;
-        drawFrame();
+        drawFrame(interactive);
       });
     };
 
@@ -1003,15 +1005,19 @@ export default function Rawline3DFittingLab({
       orbit.lastY = e.clientY;
       orbit.yaw += dx * 0.011;
       orbit.pitch = Math.max(-0.5, Math.min(0.65, orbit.pitch + dy * 0.008));
-      scheduleDraw();
+      scheduleDraw(true);
     };
 
     const handlePointerUp = (e) => {
+      const wasDragging = softwareOrbitRef.current.dragging;
       softwareOrbitRef.current.dragging = false;
       try {
         canvas.releasePointerCapture(e.pointerId);
       } catch {
         // Ignore if not captured
+      }
+      if (wasDragging) {
+        scheduleDraw(false);
       }
     };
 
@@ -1019,7 +1025,9 @@ export default function Rawline3DFittingLab({
       e.preventDefault();
       const orbit = softwareOrbitRef.current;
       orbit.zoom = Math.max(1.85, Math.min(4.8, orbit.zoom + e.deltaY * 0.0025));
-      scheduleDraw();
+      scheduleDraw(true);
+      if (wheelTimer) clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(() => scheduleDraw(false), 120);
     };
 
     canvas.addEventListener('pointerdown', handlePointerDown);
@@ -1027,7 +1035,7 @@ export default function Rawline3DFittingLab({
     window.addEventListener('pointerup', handlePointerUp);
     canvas.addEventListener('wheel', handleWheel, { passive: false });
 
-    const ro = new ResizeObserver(() => scheduleDraw());
+    const ro = new ResizeObserver(() => scheduleDraw(false));
     ro.observe(canvas);
 
     let spinRaf = 0;
@@ -1038,7 +1046,7 @@ export default function Rawline3DFittingLab({
         lastTime = now;
         if (!softwareOrbitRef.current.dragging) {
           softwareOrbitRef.current.yaw += dt * 0.9;
-          drawFrame();
+          drawFrame(true);
         }
         spinRaf = requestAnimationFrame(tick);
       };
@@ -1046,11 +1054,12 @@ export default function Rawline3DFittingLab({
     }
 
     return () => {
-      if (renderSoftwareNowRef.current === drawFrame) {
+      if (renderSoftwareNowRef.current) {
         renderSoftwareNowRef.current = null;
       }
       if (dragRaf) cancelAnimationFrame(dragRaf);
       if (spinRaf) cancelAnimationFrame(spinRaf);
+      if (wheelTimer) clearTimeout(wheelTimer);
       ro.disconnect();
       canvas.removeEventListener('pointerdown', handlePointerDown);
       window.removeEventListener('pointermove', handlePointerMove);
@@ -1099,6 +1108,11 @@ export default function Rawline3DFittingLab({
     if (!t.scene && !webglUnavailable) return;
 
     let cancelled = false;
+    const onUnload = () => {
+      cancelled = true;
+    };
+    window.addEventListener('beforeunload', onUnload);
+    window.addEventListener('pagehide', onUnload);
     const url = selectedGender === 'female' ? '/models/woman.glb' : '/models/man.glb';
 
     const attachAvatar = (gltfScene) => {
@@ -1240,6 +1254,8 @@ export default function Rawline3DFittingLab({
 
     return () => {
       cancelled = true;
+      window.removeEventListener('beforeunload', onUnload);
+      window.removeEventListener('pagehide', onUnload);
     };
   }, [isOpen, selectedGender, webglUnavailable, webglRetryCount]);
 

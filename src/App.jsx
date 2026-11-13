@@ -1,11 +1,13 @@
-import React, { Suspense, lazy, useState, useEffect, useCallback } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useCallback, useRef } from 'react';
 import { sanitizeSafeExternalUrl } from './lib/urlSafety';
 export { sanitizeSafeExternalUrl };
 import { defaultKronosData } from './data/defaultRawlineData';
+import { getSupabase, isSupabaseConfigured } from './lib/supabaseClient';
 import {
   loadLocalStoreData,
   saveLocalStoreData,
   fetchStorefrontFromSupabase,
+  subscribeStorefrontRealtime,
   upsertProductInSupabase,
   deleteProductInSupabase,
   saveSiteSettingInSupabase,
@@ -67,6 +69,9 @@ export default function App() {
 
   // Load persisted storefront + admin edits (falls back to defaultKronosData)
   const [data, setData] = useState(() => loadLocalStoreData());
+  const dataRef = useRef(data);
+  dataRef.current = data;
+  const lastSyncRef = useRef(0);
 
   // Listen to browser navigation & navigate cleanly between storefront and independent Admin Studio
   useEffect(() => {
@@ -105,10 +110,15 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
-  // Hydrate from Supabase if configured
+  // Hydrate from Supabase if configured + keep synced via Realtime, Auth changes & tab focus
   useEffect(() => {
     let active = true;
-    fetchStorefrontFromSupabase({ includeUnpublished: isAdminRoute }).then((patch) => {
+
+    const refreshFromCloud = async (force = false) => {
+      const now = Date.now();
+      if (!force && now - lastSyncRef.current < 2000) return;
+      lastSyncRef.current = now;
+      const patch = await fetchStorefrontFromSupabase({ includeUnpublished: isAdminRoute });
       if (active && patch) {
         setData((prev) => {
           const merged = { ...prev, ...patch };
@@ -116,9 +126,36 @@ export default function App() {
           return merged;
         });
       }
-    });
+    };
+
+    refreshFromCloud(true);
+
+    const unsubscribeRealtime = subscribeStorefrontRealtime(() => refreshFromCloud(true));
+
+    const sb = getSupabase();
+    let authSub = null;
+    if (sb && isAdminRoute) {
+      const { data: sub } = sb.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          refreshFromCloud(true);
+        }
+      });
+      authSub = sub?.subscription || null;
+    }
+
+    const onFocus = () => refreshFromCloud(false);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refreshFromCloud(false);
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+
     return () => {
       active = false;
+      unsubscribeRealtime?.();
+      authSub?.unsubscribe?.();
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [isAdminRoute]);
 
@@ -205,53 +242,65 @@ export default function App() {
     });
   }, []);
 
-  // Add Product
-  const handleAddProduct = useCallback((newProduct) => {
+  // Add Product (awaited against Supabase when configured so Admin stays 100% synced)
+  const handleAddProduct = useCallback(async (newProduct) => {
     const created = {
       id: `prod-${Date.now()}`,
       name: 'NEW STREETWEAR PIECE',
       price: 180,
       category: 'Jackets',
       gender: 'MEN',
+      stockQuantity: 50,
+      availabilityStatus: 'in_stock',
+      inStock: true,
       isPublished: true,
       ...newProduct
     };
-    setData((prev) => {
-      const nextProducts = [created, ...(prev.products || [])];
-      upsertProductInSupabase(created, 0).then((res) => notifySyncError(res, 'Supabase Product Save'));
-      return { ...prev, products: nextProducts };
-    });
-  }, []);
-
-  // Update Product
-  const handleUpdateProduct = useCallback((id, updates) => {
-    setData((prev) => {
-      let updatedProd = null;
-      let sortOrder = 0;
-      const nextProducts = (prev.products || []).map((p, idx) => {
-        if (p.id === id) {
-          updatedProd = { ...p, ...updates };
-          sortOrder = idx + 1;
-          return updatedProd;
-        }
-        return p;
-      });
-      if (updatedProd) {
-        upsertProductInSupabase(updatedProd, sortOrder).then((res) =>
-          notifySyncError(res, 'Supabase Product Save')
-        );
+    if (isSupabaseConfigured()) {
+      const res = await upsertProductInSupabase(created, 0);
+      if (!res?.ok) {
+        notifySyncError(res, 'Supabase Product Save');
+        return res;
       }
-      return { ...prev, products: nextProducts };
-    });
+    }
+    setData((prev) => ({ ...prev, products: [created, ...(prev.products || [])] }));
+    return { ok: true, product: created };
   }, []);
 
-  // Delete Product
-  const handleDeleteProduct = useCallback((id) => {
-    deleteProductInSupabase(id).then((res) => notifySyncError(res, 'Supabase Product Delete'));
+  // Update Product (awaited against Supabase when configured so Admin stays 100% synced)
+  const handleUpdateProduct = useCallback(async (id, updates) => {
+    const currentList = dataRef.current?.products || [];
+    const idx = currentList.findIndex((p) => p.id === id);
+    if (idx === -1) return { ok: false, error: 'Product not found' };
+    const updatedProd = { ...currentList[idx], ...updates };
+    if (isSupabaseConfigured()) {
+      const res = await upsertProductInSupabase(updatedProd, idx + 1);
+      if (!res?.ok) {
+        notifySyncError(res, 'Supabase Product Save');
+        return res;
+      }
+    }
+    setData((prev) => ({
+      ...prev,
+      products: (prev.products || []).map((p) => (p.id === id ? { ...p, ...updates } : p))
+    }));
+    return { ok: true, product: updatedProd };
+  }, []);
+
+  // Delete Product (verified in Supabase first so deleted items never ghost on main storefront)
+  const handleDeleteProduct = useCallback(async (id) => {
+    if (isSupabaseConfigured()) {
+      const res = await deleteProductInSupabase(id);
+      if (!res?.ok) {
+        notifySyncError(res, 'Supabase Product Delete');
+        return res;
+      }
+    }
     setData((prev) => ({
       ...prev,
       products: (prev.products || []).filter((p) => p.id !== id)
     }));
+    return { ok: true, deletedId: id };
   }, []);
 
   // Hydrate or Reset Defaults

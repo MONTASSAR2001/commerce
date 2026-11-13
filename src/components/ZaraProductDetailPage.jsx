@@ -171,10 +171,15 @@ export default function ZaraProductDetailPage({
   if (!product) return null;
 
   const isWishlisted = wishlist.includes(product.id);
+  const availabilityStatus = product.availabilityStatus || (product.inStock === false || Number(product.stockQuantity ?? 50) <= 0 ? 'out_of_stock' : 'in_stock');
+  const isOutOfStock = availabilityStatus === 'out_of_stock';
+  const isArrivage = availabilityStatus === 'arrivage';
+  const isPurchasable = !isOutOfStock && !isArrivage;
   const sizes = Array.isArray(product.sizes) && product.sizes.length > 0 ? product.sizes : ['XS', 'S', 'M', 'L', 'XL'];
   const refCode = activeVariant?.reference || product.reference || '';
 
   const handlePrimaryAdd = () => {
+    if (!isPurchasable) return;
     onAddToCart(
       { ...product, img: heroImage, image: heroImage },
       selectedSize || sizes[0] || 'M',
@@ -268,16 +273,28 @@ export default function ZaraProductDetailPage({
                 className="w-full h-full object-cover object-top cursor-zoom-in transition-transform duration-700 group-hover:scale-[1.015]"
               />
 
-              {/* Discount / New tag subtle Zara stamp */}
-              {product.discount ? (
-                <span className="absolute top-3 left-3 px-2.5 py-1 bg-[#EA301F] text-white text-[10px] font-mono font-bold uppercase tracking-widest">
-                  {product.discount}
-                </span>
-              ) : product.badge ? (
-                <span className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 text-[#111111] text-[10px] font-mono uppercase tracking-widest border border-black/10">
-                  {product.badge}
-                </span>
-              ) : null}
+              {/* Discount / Availability / New tag subtle Zara stamp */}
+              <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5">
+                {isOutOfStock && (
+                  <span className="px-2.5 py-1 bg-[#111111] text-white text-[10px] font-mono font-bold uppercase tracking-widest">
+                    {t('product.outOfStock')}
+                  </span>
+                )}
+                {isArrivage && (
+                  <span className="px-2.5 py-1 bg-[#f59e0b] text-[#111111] text-[10px] font-mono font-bold uppercase tracking-widest">
+                    {t('product.arrivage')}
+                  </span>
+                )}
+                {product.discount ? (
+                  <span className="px-2.5 py-1 bg-[#EA301F] text-white text-[10px] font-mono font-bold uppercase tracking-widest">
+                    {product.discount}
+                  </span>
+                ) : product.badge && !isOutOfStock && !isArrivage ? (
+                  <span className="px-2.5 py-1 bg-white/90 text-[#111111] text-[10px] font-mono uppercase tracking-widest border border-black/10">
+                    {product.badge}
+                  </span>
+                ) : null}
+              </div>
 
               {/* Expand button */}
               <button
@@ -373,7 +390,7 @@ export default function ZaraProductDetailPage({
             <h1 className="text-base sm:text-lg font-medium uppercase tracking-[0.06em] text-[#111111] leading-snug">
               {localizeProductName(product.name, language)}
             </h1>
-            <div className="flex items-baseline gap-3 mt-1.5 pb-5 border-b border-black/15">
+            <div className="flex items-baseline flex-wrap gap-3 mt-1.5 pb-4 border-b border-black/15">
               <span className="text-sm sm:text-base font-medium tracking-wide text-[#111111]">
                 {formatPrice(product.price)}
               </span>
@@ -387,7 +404,22 @@ export default function ZaraProductDetailPage({
                   {product.discount}
                 </span>
               )}
+              {isOutOfStock && (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#111111] text-white uppercase">
+                  {t('product.outOfStock')}
+                </span>
+              )}
+              {isArrivage && (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#f59e0b] text-[#111111] uppercase">
+                  {t('product.arrivage')}{product.arrivalNote ? ` · ${product.arrivalNote}` : ''}
+                </span>
+              )}
             </div>
+            {(isOutOfStock || isArrivage) && (
+              <p className={`mt-2.5 text-[11px] font-mono ${isOutOfStock ? 'text-[#EA301F]' : 'text-[#b45309]'}`}>
+                {isOutOfStock ? t('product.outOfStockDesc') : (product.arrivalNote || t('product.arrivageDesc'))}
+              </p>
+            )}
 
             {/* Color Name | Ref Code + Square Zara Color Swatches */}
             <div className="pt-5">
@@ -451,15 +483,24 @@ export default function ZaraProductDetailPage({
             <div className="pt-5 space-y-2.5">
               <button
                 onClick={handlePrimaryAdd}
-                className={`w-full py-3.5 text-[11px] font-mono uppercase tracking-[0.22em] font-semibold border transition-colors cursor-pointer ${
-                  justAdded
-                    ? 'bg-[#15803D] border-[#15803D] text-white'
-                    : 'bg-[#111111] border-[#111111] text-white hover:bg-[#EA301F] hover:border-[#EA301F]'
+                disabled={!isPurchasable}
+                className={`w-full py-3.5 text-[11px] font-mono uppercase tracking-[0.22em] font-semibold border transition-colors ${
+                  isOutOfStock
+                    ? 'bg-neutral-200 border-neutral-300 text-neutral-500 cursor-not-allowed'
+                    : isArrivage
+                      ? 'bg-amber-50 border-amber-500 text-amber-900 cursor-not-allowed'
+                      : justAdded
+                        ? 'bg-[#15803D] border-[#15803D] text-white cursor-pointer'
+                        : 'bg-[#111111] border-[#111111] text-white hover:bg-[#EA301F] hover:border-[#EA301F] cursor-pointer'
                 }`}
               >
-                {justAdded
-                  ? `${t('product.addedBanner')} — ${selectedSize} ✓`
-                  : `${t('product.addToBag')}  (${selectedSize} · ${localizeColor(activeVariant?.name, language) || t('cart.standardColor').toUpperCase()})`}
+                {isOutOfStock
+                  ? t('product.outOfStock')
+                  : isArrivage
+                    ? `${t('product.arrivageSoon')}${product.arrivalNote ? ` — ${product.arrivalNote}` : ''}`
+                    : justAdded
+                      ? `${t('product.addedBanner')} — ${selectedSize} ✓`
+                      : `${t('product.addToBag')}  (${selectedSize} · ${localizeColor(activeVariant?.name, language) || t('cart.standardColor').toUpperCase()})`}
               </button>
 
               <button
@@ -720,13 +761,19 @@ export default function ZaraProductDetailPage({
                       <span className="text-[11px] font-mono text-[#333333]">
                         {formatPrice(item.price)}
                       </span>
-                      <button
-                        onClick={() => setQuickAddId((prev) => (prev === item.id ? null : item.id))}
-                        title="Quick Add Size"
-                        className="p-1 text-[#555555] hover:text-[#111111] transition-colors cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
+                      {(item.availabilityStatus === 'out_of_stock' || item.availabilityStatus === 'arrivage' || item.inStock === false) ? (
+                        <span className={`text-[9px] font-mono uppercase font-bold ${item.availabilityStatus === 'arrivage' ? 'text-amber-700' : 'text-red-600'}`}>
+                          {item.availabilityStatus === 'arrivage' ? t('product.arrivage') : t('product.outOfStock')}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setQuickAddId((prev) => (prev === item.id ? null : item.id))}
+                          title="Quick Add Size"
+                          className="p-1 text-[#555555] hover:text-[#111111] transition-colors cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

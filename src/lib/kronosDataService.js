@@ -116,8 +116,36 @@ export function safeWriteJson(key, val) {
   }
 }
 
-export function mapDbProductToApp(row) {
+let productsHasAvailabilityCols = null;
+
+export function normalizeAvailabilityStatus(rawStatus, stockQuantity = 50, badge = '') {
+  if (rawStatus && typeof rawStatus === 'object') {
+    const p = rawStatus;
+    return normalizeAvailabilityStatus(
+      p.availabilityStatus ?? p.availability_status ?? (p.inStock === false ? 'out_of_stock' : undefined),
+      p.stockQuantity ?? p.stock_quantity ?? p.stockCount ?? stockQuantity,
+      p.badge ?? badge
+    );
+  }
+  const s = String(rawStatus || '').trim().toLowerCase();
+  if (s === 'out_of_stock' || s === 'out-of-stock' || s === 'rupture') return 'out_of_stock';
+  if (s === 'arrivage' || s === 'coming_soon' || s === 'pre_order') return 'arrivage';
+  if (s === 'in_stock' || s === 'in-stock') return Number(stockQuantity ?? 50) <= 0 ? 'out_of_stock' : 'in_stock';
+  if (Number(stockQuantity ?? 50) <= 0) return 'out_of_stock';
+  if (String(badge || '').toUpperCase().includes('ARRIVAGE')) return 'arrivage';
+  if (String(badge || '').toUpperCase().includes('OUT OF STOCK')) return 'out_of_stock';
+  return 'in_stock';
+}
+
+export function mapDbProductToApp(row, statusOverride = null) {
   if (!row) return null;
+  const stockQuantity = Number(row.stock_quantity ?? 50);
+  const availabilityStatus = normalizeAvailabilityStatus(
+    row.availability_status || statusOverride?.availabilityStatus,
+    stockQuantity,
+    row.badge
+  );
+  const arrivalNote = row.arrival_note || statusOverride?.arrivalNote || '';
   return {
     id: row.id,
     slug: row.slug,
@@ -138,20 +166,33 @@ export function mapDbProductToApp(row) {
     composition: row.composition || '100% Cotton',
     garmentType: row.garment_type || 'top',
     fitScore: row.fit_score || '98% Anatomical Fit',
-    stockQuantity: Number(row.stock_quantity ?? 50),
+    stockQuantity,
+    availabilityStatus,
+    arrivalNote,
+    inStock: availabilityStatus === 'in_stock' && stockQuantity > 0,
     isPublished: row.is_published !== false,
     sortOrder: Number(row.sort_order ?? 0)
   };
 }
 
-export function mapAppProductToDb(p, sortOrder = 0) {
+export function mapAppProductToDb(p, sortOrder = 0, includeAvailabilityCols = true) {
   const slug =
     (p.slug || `${p.name || 'item'}-${p.id || Date.now()}`)
       .toLowerCase()
       .replace(/[^a-z0-9-]+/g, '-')
       .replace(/(^-|-$)/g, '');
   const primaryImg = p.img || p.images?.[0] || p.colorVariants?.[0]?.images?.[0] || '';
-  return {
+  const availabilityStatus = normalizeAvailabilityStatus(
+    p.availabilityStatus ?? (p.inStock === false ? 'out_of_stock' : undefined),
+    p.stockQuantity,
+    p.badge
+  );
+  const rawStock = Number(p.stockQuantity ?? 50);
+  const resolvedStock =
+    availabilityStatus === 'out_of_stock'
+      ? 0
+      : Math.max(0, Number.isFinite(rawStock) ? rawStock : 50);
+  const row = {
     id: p.id,
     slug,
     name: p.name,
@@ -173,10 +214,15 @@ export function mapAppProductToDb(p, sortOrder = 0) {
     composition: p.composition || '100% Cotton',
     garment_type: p.garmentType || 'top',
     fit_score: p.fitScore || '98% Anatomical Fit',
-    stock_quantity: Number(p.stockQuantity ?? 50),
+    stock_quantity: resolvedStock,
     is_published: p.isPublished !== false,
     sort_order: p.sortOrder ?? sortOrder
   };
+  if (includeAvailabilityCols) {
+    row.availability_status = availabilityStatus;
+    row.arrival_note = p.arrivalNote || '';
+  }
+  return row;
 }
 
 export function loadLocalStoreData() {
@@ -202,7 +248,9 @@ export function loadLocalStoreData() {
     stores: Array.isArray(saved.stores) && saved.stores.length > 0 ? saved.stores : defaultKronosData.stores,
     reviews: Array.isArray(saved.reviews) && saved.reviews.length > 0 ? saved.reviews : defaultKronosData.reviews,
     faqs: Array.isArray(saved.faqs) && saved.faqs.length > 0 ? saved.faqs : defaultKronosData.faqs,
-    products: Array.isArray(saved.products) && saved.products.length > 0 ? saved.products : defaultKronosData.products
+    products: Array.isArray(saved.products)
+      ? (saved.products.length > 0 || saved.__cloudHydrated ? saved.products : defaultKronosData.products)
+      : defaultKronosData.products
   };
 }
 
@@ -219,8 +267,37 @@ export function saveLocalStoreData(data) {
   }
 }
 
+function isMissingAvailabilityColumnError(err) {
+  const msg = String(err?.message || '');
+  return err?.code === 'PGRST204' || err?.code === '42703' || /availability_status|arrival_note/i.test(msg);
+}
+
+async function saveProductStatusMapEntry(sb, productId, statusEntry) {
+  if (!sb || !productId) return;
+  try {
+    const { data: row } = await sb
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'product_status_map')
+      .maybeSingle();
+    const currentMap = row?.value && typeof row.value === 'object' ? { ...row.value } : {};
+    if (!statusEntry || (statusEntry.availabilityStatus === 'in_stock' && !statusEntry.arrivalNote)) {
+      if (!(productId in currentMap)) return;
+      delete currentMap[productId];
+    } else {
+      currentMap[productId] = statusEntry;
+    }
+    await sb
+      .from('site_settings')
+      .upsert({ key: 'product_status_map', section: 'catalog', value: currentMap }, { onConflict: 'key' });
+  } catch (err) {
+    console.warn('[Supabase] saveProductStatusMapEntry:', err?.message || err);
+  }
+}
+
 /**
- * Hydrates storefront/admin data from Supabase if configured and non-empty.
+ * Hydrates storefront/admin data from Supabase if configured.
+ * Uses Supabase as the authoritative catalog once Supabase has products or settings.
  */
 export async function fetchStorefrontFromSupabase({ includeUnpublished = false } = {}) {
   const sb = getSupabase();
@@ -241,21 +318,67 @@ export async function fetchStorefrontFromSupabase({ includeUnpublished = false }
     if (setErr) console.warn('[Supabase] site_settings read:', setErr.message);
 
     const patch = {};
+    let statusMap = {};
     if (Array.isArray(settingRows) && settingRows.length > 0) {
       settingRows.forEach((row) => {
+        if (row.key === 'product_status_map' && row.value && typeof row.value === 'object') {
+          statusMap = row.value;
+          return;
+        }
         if (row.key && row.value !== undefined) {
           patch[row.key] = row.value;
         }
       });
     }
-    if (Array.isArray(productRows) && productRows.length > 0) {
-      patch.products = productRows.map(mapDbProductToApp).filter(Boolean);
+
+    const cloudInitialized =
+      (!prodErr && Array.isArray(productRows) && productRows.length > 0) ||
+      (Array.isArray(settingRows) && settingRows.length > 0);
+
+    if (!prodErr && Array.isArray(productRows) && cloudInitialized) {
+      patch.products = productRows
+        .map((row) => mapDbProductToApp(row, statusMap[row.id] || null))
+        .filter(Boolean);
+      patch.__cloudHydrated = true;
     }
     return Object.keys(patch).length > 0 ? patch : null;
   } catch (err) {
     console.warn('[Supabase] fetchStorefrontFromSupabase exception:', err);
     return null;
   }
+}
+
+/**
+ * Subscribes to live Supabase Postgres changes on products, site_settings & promo_codes.
+ */
+export function subscribeStorefrontRealtime(onRemoteChange) {
+  const sb = getSupabase();
+  if (!sb || typeof onRemoteChange !== 'function') return () => {};
+
+  let timer = null;
+  const trigger = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      onRemoteChange();
+    }, 180);
+  };
+
+  const channel = sb
+    .channel(`kronos-live-sync-${Date.now()}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, trigger)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, trigger)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'promo_codes' }, trigger)
+    .subscribe();
+
+  return () => {
+    if (timer) clearTimeout(timer);
+    try {
+      sb.removeChannel(channel);
+    } catch {
+      // ignore cleanup failures
+    }
+  };
 }
 
 async function getAuthenticatedSession(sb) {
@@ -283,6 +406,10 @@ export async function upsertProductInSupabase(product, sortOrder = 0) {
   if (!sb) return { ok: false, localOnly: true };
   const session = await getAuthenticatedSession(sb);
   if (!session) {
+    emitAdminAuthEvent(
+      'kronos:require-admin-auth',
+      'Sign in with montassarzarai0@gmail.com to save product changes live on the main storefront.'
+    );
     return {
       ok: false,
       authRequired: true,
@@ -290,10 +417,40 @@ export async function upsertProductInSupabase(product, sortOrder = 0) {
     };
   }
   try {
-    const dbRow = mapAppProductToDb(product, sortOrder);
-    const { error } = await sb.from('products').upsert(dbRow, { onConflict: 'id' });
-    if (error) return { ok: false, rlsBlocked: /row-level security/i.test(error.message), error: error.message };
-    return { ok: true };
+    let includeAvail = productsHasAvailabilityCols !== false;
+    let dbRow = mapAppProductToDb(product, sortOrder, includeAvail);
+    let { data, error } = await sb.from('products').upsert(dbRow, { onConflict: 'id' }).select('id');
+
+    if (error && includeAvail && isMissingAvailabilityColumnError(error)) {
+      productsHasAvailabilityCols = false;
+      dbRow = mapAppProductToDb(product, sortOrder, false);
+      const retry = await sb.from('products').upsert(dbRow, { onConflict: 'id' }).select('id');
+      data = retry.data;
+      error = retry.error;
+    }
+
+    if (error) {
+      return { ok: false, rlsBlocked: /row-level security/i.test(error.message), error: error.message };
+    }
+    if (!Array.isArray(data) || data.length === 0) {
+      return {
+        ok: false,
+        rlsBlocked: true,
+        error: 'Supabase RLS blocked product update — verify your UID is active in public.admin_profiles.'
+      };
+    }
+
+    const availabilityStatus = normalizeAvailabilityStatus(
+      product.availabilityStatus,
+      product.stockQuantity,
+      product.badge
+    );
+    await saveProductStatusMapEntry(sb, product.id, {
+      availabilityStatus,
+      arrivalNote: product.arrivalNote || ''
+    });
+
+    return { ok: true, cloud: true };
   } catch (err) {
     return { ok: false, error: err.message };
   }
@@ -304,6 +461,10 @@ export async function deleteProductInSupabase(productId) {
   if (!sb) return { ok: false, localOnly: true };
   const session = await getAuthenticatedSession(sb);
   if (!session) {
+    emitAdminAuthEvent(
+      'kronos:require-admin-auth',
+      'Sign in with montassarzarai0@gmail.com to delete items live on the main storefront.'
+    );
     return {
       ok: false,
       authRequired: true,
@@ -311,9 +472,30 @@ export async function deleteProductInSupabase(productId) {
     };
   }
   try {
-    const { error } = await sb.from('products').delete().eq('id', productId);
-    if (error) return { ok: false, rlsBlocked: /row-level security/i.test(error.message), error: error.message };
-    return { ok: true };
+    const { data: deleted, error } = await sb
+      .from('products')
+      .delete()
+      .eq('id', productId)
+      .select('id');
+    if (error) {
+      return { ok: false, rlsBlocked: /row-level security/i.test(error.message), error: error.message };
+    }
+    if (!Array.isArray(deleted) || deleted.length === 0) {
+      const { data: stillThere } = await sb
+        .from('products')
+        .select('id')
+        .eq('id', productId)
+        .maybeSingle();
+      if (stillThere) {
+        return {
+          ok: false,
+          rlsBlocked: true,
+          error: 'Supabase RLS blocked deleting this product — verify your UID is active in public.admin_profiles.'
+        };
+      }
+    }
+    await saveProductStatusMapEntry(sb, productId, null);
+    return { ok: true, cloud: true, deletedId: productId };
   } catch (err) {
     return { ok: false, error: err.message };
   }
@@ -324,6 +506,10 @@ export async function saveSiteSettingInSupabase(key, section, value) {
   if (!sb) return { ok: false, localOnly: true };
   const session = await getAuthenticatedSession(sb);
   if (!session) {
+    emitAdminAuthEvent(
+      'kronos:require-admin-auth',
+      `Sign in with montassarzarai0@gmail.com to save ${key} to Supabase.`
+    );
     return {
       ok: false,
       authRequired: true,
@@ -381,22 +567,44 @@ export async function syncAllStorefrontToSupabase(storeData) {
       ['faqs', 'support']
     ];
 
-    const settingsPayload = settingMap.map(([key, section]) => ({
-      key,
-      section,
-      value: storeData[key] ?? defaultKronosData[key]
-    }));
+    const statusMap = {};
+    (storeData.products || []).forEach((p) => {
+      const av = normalizeAvailabilityStatus(p.availabilityStatus, p.stockQuantity, p.badge);
+      if (av !== 'in_stock' || p.arrivalNote) {
+        statusMap[p.id] = { availabilityStatus: av, arrivalNote: p.arrivalNote || '' };
+      }
+    });
+
+    const settingsPayload = [
+      ...settingMap.map(([key, section]) => ({
+        key,
+        section,
+        value: storeData[key] ?? defaultKronosData[key]
+      })),
+      { key: 'product_status_map', section: 'catalog', value: statusMap }
+    ];
 
     const { error: setErr } = await sb
       .from('site_settings')
       .upsert(settingsPayload, { onConflict: 'key' });
     if (setErr) return { ok: false, error: `site_settings sync failed: ${setErr.message}` };
 
-    const productsPayload = (storeData.products || []).map((p, idx) => mapAppProductToDb(p, idx + 1));
+    const includeAvail = productsHasAvailabilityCols !== false;
+    let productsPayload = (storeData.products || []).map((p, idx) =>
+      mapAppProductToDb(p, idx + 1, includeAvail)
+    );
     if (productsPayload.length > 0) {
-      const { error: prodErr } = await sb
+      let { error: prodErr } = await sb
         .from('products')
         .upsert(productsPayload, { onConflict: 'id' });
+      if (prodErr && includeAvail && isMissingAvailabilityColumnError(prodErr)) {
+        productsHasAvailabilityCols = false;
+        productsPayload = (storeData.products || []).map((p, idx) =>
+          mapAppProductToDb(p, idx + 1, false)
+        );
+        const retry = await sb.from('products').upsert(productsPayload, { onConflict: 'id' });
+        prodErr = retry.error;
+      }
       if (prodErr) return { ok: false, error: `products sync failed: ${prodErr.message}` };
     }
 
