@@ -343,10 +343,11 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
       }
     };
     const onRequireAuth = (e) => {
-      setAuthModalMode('signin');
-      setAuthReason(e?.detail || 'Sign in with your Supabase Admin email to persist edits & uploads.');
-      setAuthError('');
-      setAuthModalOpen(true);
+      notify(
+        e?.detail
+          ? `${e.detail} — changes stay active in local Studio preview.`
+          : 'Updated in open Studio preview — sign in anytime via Admin Sign In to sync to cloud.'
+      );
     };
     const onRequireSql = (e) => {
       setAuthModalMode('sql_needed');
@@ -582,10 +583,10 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                   <span
                     className={`px-2 py-0.5 rounded-[12px] border border-[#171717] text-[9px] font-mono font-bold ${
                       !isSupabaseConfigured()
-                        ? 'bg-[#ff6f1e]/15 text-[#9a3412]'
+                        ? 'LOCAL MODE'
                         : sessionUser && adminProfileActive
                           ? 'bg-[#22c55e]/20 text-[#1b7a42]'
-                          : 'bg-[#fff3e6] text-[#9a3412]'
+                          : 'bg-[#22c55e]/15 text-[#1b7a42]'
                     }`}
                   >
                     {!isSupabaseConfigured()
@@ -594,7 +595,7 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                         ? 'SUPERADMIN'
                         : sessionUser
                           ? 'SQL PENDING'
-                          : 'LOCKED (ANON)'}
+                          : 'OPEN STUDIO'}
                   </span>
                 </div>
 
@@ -614,16 +615,16 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                     <button
                       onClick={handleCopyUserId}
                       className={`inline-flex items-center gap-1 font-mono text-[10px] font-bold hover:underline cursor-pointer ${
-                        sessionUser ? 'text-emerald-700' : 'text-[#9a3412]'
+                        sessionUser ? 'text-emerald-700' : 'text-[#1b7a42]'
                       }`}
                     >
-                      <span>{sessionUser ? shortUserId : 'NOT SIGNED IN'}</span>
+                      <span>{sessionUser ? shortUserId : shortUserId}</span>
                       {idCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3 opacity-60" />}
                     </button>
                   </div>
                   <div className="flex items-center justify-between text-[10px]">
                     <span className="text-[#171717]/60 font-bold">DOSSIER:</span>
-                    <span className="font-mono font-bold text-[#9a3412]">COMMERCE • RLS</span>
+                    <span className="font-mono font-bold text-[#9a3412]">OPEN • RLS CLOUD</span>
                   </div>
                   {isSupabaseConfigured() ? (
                     sessionUser && adminProfileActive ? (
@@ -632,22 +633,10 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                         <span>Supabase Storage + RLS Unlocked</span>
                       </div>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAuthModalMode(sessionUser ? 'sql_needed' : 'signin');
-                          setAuthReason(
-                            sessionUser
-                              ? 'Signed in — copy & run the 1-line SQL snippet to activate your admin_profiles row.'
-                              : 'Sign in with montassarzarai0@gmail.com to unlock Supabase image uploads & edits.'
-                          );
-                          setAuthModalOpen(true);
-                        }}
-                        className="mt-1.5 w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-[8px] border-[1.2px] border-[#171717] bg-[#ff6f1e] text-white text-[10px] font-bold hover:bg-[#e55d0f] cursor-pointer"
-                      >
-                        <Lock className="w-3 h-3" />
-                        <span>{sessionUser ? 'Run Admin SQL' : 'Sign In To Unlock Cloud'}</span>
-                      </button>
+                      <div className="flex items-center gap-1 text-[9px] font-mono text-[#1b7a42] pt-1">
+                        <ShieldCheck className="w-3 h-3 text-[#22c55e] shrink-0" />
+                        <span>Public Studio View · Cloud Read Ready</span>
+                      </div>
                     )
                   ) : (
                     <div className="flex items-center gap-1 text-[9px] font-mono text-[#1b7a42] pt-1">
@@ -738,7 +727,7 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                 className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[20px] border text-[10px] font-mono font-bold cursor-pointer ${
                   sessionUser && adminProfileActive
                     ? 'border-[#171717]/40 bg-[#22c55e]/10 text-[#1b7a42] hover:bg-[#22c55e]/20'
-                    : 'border-[#171717] bg-[#fff3e6] text-[#9a3412] hover:bg-[#ffe5cc]'
+                    : 'border-[#171717]/40 bg-[#22c55e]/10 text-[#1b7a42] hover:bg-[#22c55e]/20'
                 }`}
               >
                 {sessionUser && adminProfileActive ? (
@@ -749,8 +738,8 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
                   </>
                 ) : (
                   <>
-                    <Lock className="w-3 h-3 text-[#ff6f1e]" />
-                    <span>{sessionUser ? 'run admin sql' : 'sign in required'}</span>
+                    <ShieldCheck className="w-3 h-3 text-[#22c55e]" />
+                    <span>{sessionUser ? 'run admin sql' : 'open studio'}</span>
                   </>
                 )}
               </button>
@@ -818,51 +807,6 @@ ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, role = 'superadmin', is_a
 
         {/* ── MAIN SCROLLABLE DASHBOARD BODY ── */}
         <div className="flex-1 p-5 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
-          {/* RLS Auth Warning Banner with Inline Quick Sign-In */}
-          {getSupabase() && !sessionUser && (
-            <form
-              onSubmit={handleSupabaseQuickSignIn}
-              className="p-4 rounded-[14px] border-[1.5px] border-[#171717] bg-[#fff3e6] shadow-[3px_3px_0px_#171717] space-y-3"
-            >
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                <div className="space-y-0.5 text-xs">
-                  <p className="font-bold text-[#9a3412] uppercase tracking-wide flex items-center gap-1.5">
-                    <span>🔒 Sign In With Your Supabase Admin Email ({import.meta.env.VITE_KRONOS_ADMIN_EMAIL || 'montassarzarai0@gmail.com'})</span>
-                  </p>
-                  <p className="text-[#171717]/80">
-                    Sign in below to unlock direct uploads to <code className="font-mono">kronos-images</code> &amp; PostgreSQL saves protected by RLS.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
-                  <input
-                    type="email"
-                    required
-                    value={quickEmail}
-                    onChange={(e) => setQuickEmail(e.target.value)}
-                    placeholder="montassarzarai0@gmail.com"
-                    className="px-3 py-1.5 rounded-[8px] border-[1.5px] border-[#171717] bg-white text-xs font-mono"
-                  />
-                  <input
-                    type="password"
-                    required
-                    value={quickPass}
-                    onChange={(e) => setQuickPass(e.target.value)}
-                    placeholder="Supabase password"
-                    className="px-3 py-1.5 rounded-[8px] border-[1.5px] border-[#171717] bg-white text-xs"
-                  />
-                  <button
-                    type="submit"
-                    disabled={quickBusy}
-                    className="superr-pill-btn-primary py-1.5 px-4 text-xs"
-                  >
-                    <span>{quickBusy ? 'Signing in...' : 'Sign In & Unlock Cloud'}</span>
-                  </button>
-                </div>
-              </div>
-            </form>
-          )}
-
           {/* 1. HERO MASTER NOTEBOOK WELCOME BANNER (Exact Match Pic 1) */}
           <section className="superr-card-tint p-6 sm:p-8 relative overflow-hidden">
             <div className="absolute inset-0 superr-notebook-grid opacity-30 pointer-events-none" />

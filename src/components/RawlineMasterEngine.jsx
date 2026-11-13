@@ -5714,6 +5714,17 @@ export default function RawlineMasterEngine({
             </svg>
             <span>{t('nav.lab3d')}</span>
           </button>
+
+          {/* Direct Admin Studio Pill */}
+          {onOpenAdmin && (
+            <button
+              onClick={onOpenAdmin}
+              className="kronos-surface-pill flex items-center gap-1.5 h-[36px] px-3 rounded-full bg-[#18181D] hover:bg-[#23232A] text-[#FFFFE3] hover:text-[#EA301F] border border-[#2B2B33] hover:border-[#EA301F] text-[11px] font-mono font-bold uppercase transition-all tracking-wider shadow-sm cursor-pointer whitespace-nowrap shrink-0"
+              title="Open K Admin Studio"
+            >
+              <span>{language === 'ar' ? 'الإدارة' : 'Admin'}</span>
+            </button>
+          )}
         </div>
 
         {/* Right: Night/Day Toggle, Language EN|FR|AR, Currency, Search, Wishlist, Cart & Mobile Toggle */}
@@ -5919,6 +5930,18 @@ export default function RawlineMasterEngine({
               </div>
               <span className="text-xs font-mono bg-[#EA301F]/20 border border-[#EA301F]/40 px-2 py-0.5 rounded text-[#EA301F]">{t('footer.neural')}</span>
             </button>
+            {onOpenAdmin && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAdmin();
+                }}
+                className="flex items-center justify-between text-[#FFFFE3] hover:text-[#EA301F] transition-colors w-full text-left"
+              >
+                <span>{t('footer.adminStudio')}</span>
+                <span className="text-xs font-mono border border-[#FFFFE3]/30 px-2 py-0.5 rounded text-[#FFFFE3]/80">/admin</span>
+              </button>
+            )}
 
             <div className="pt-6 border-t border-[#FFFFE3]/10">
               <p className="text-xs font-mono text-[#FFFFE3]/40 tracking-widest mb-4">
